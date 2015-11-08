@@ -1,0 +1,955 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<resource>
+  <imageatlas size="32x32" file="tile_1.png">
+    <image id="i-floor" offset="0,0" />
+
+    <image id="i-leftwall" offset="0,32" />
+    
+    <image id="i-rightwall" offset="288,32" />
+    <image id="i-startpoint" offset="32,32" />
+    <image id="i-tr" offset="128,192" />
+    <image id="i-l1" offset="128,128" />
+    <image id="i-l2" offset="128,64" />
+
+  </imageatlas>
+  <tileset>
+    <tile id="floor">
+      <image ref="i-floor" />
+      <property name="top" type="bool" value="True" />
+    </tile>
+    <tile id="leftwall">
+      <image ref="i-leftwall" />
+      <property name="right" type="bool" value="True" />
+    </tile>
+    <tile id="rightwall">
+      <image ref="i-rightwall" />
+      <property name="left" type="bool" value="True" />
+    </tile>
+    <tile id ="startpoint">
+      <image ref="i-startpoint" />
+    </tile>
+  </tileset>
+  <rectmap id="level0" tile_size="32x32" origin="0,0,0">
+    <column>
+      <!-- 1 -->
+      <cell tile="floor" />
+      <cell tile="leftwall" />
+      <cell tile="leftwall" />
+      <cell tile="leftwall" />
+      <cell tile="leftwall" />
+      <cell tile="leftwall" />
+      <cell tile="leftwall" />
+      <cell tile="leftwall" />
+      <cell tile="leftwall" />
+      <cell tile="leftwall" />
+      <cell tile="leftwall" />
+      <cell tile="leftwall" />
+      <cell tile="leftwall" />
+      <cell tile="leftwall" />
+
+    </column>
+    <column>
+      <!-- 2 -->
+      <cell tile="floor" />
+      <cell tile ="startpoint">
+        <property type="bool" name="player_start" value="True" />
+      </cell>
+      <cell />
+      <cell />
+      <cell />
+      <cell />
+      <cell />
+      <cell />
+      <cell />
+      <cell />
+      <cell />
+      <cell />
+      <cell />
+      <cell />
+    </column>
+    <column>
+      <!-- 3 -->
+      <cell tile="floor" />
+      <cell />
+      <cell />
+      <cell />
+      <cell />
+      <cell />
+      <cell />
+      <cell />
+      <cell />
+      <cell />
+      <cell />
+      <cell />
+      <cell />
+      <cell />
+    </column>
+    <column>
+      <!-- 4 -->
+      <cell tile="floor" />
+      <cell />
+      <cell />
+      <cell />
+      <cell />
+      <cell />
+      <cell />
+      <cell />
+      <cell />
+      <cell />
+      <cell />
+      <cell />
+      <cell />
+      <cell />
+    </column>
+    <column>
+      <!-- 5 -->
+      <cell tile="floor" />
+      <cell />
+      <cell />
+      <cell />
+      <cell />
+      <cell />
+      <cell />
+      <cell />
+      <cell />
+      <cell />
+      <cell />
+      <cell />
+      <cell />
+      <cell />
+    </column>
+    <column>
+      <!-- 6 -->
+      <cell tile="floor" />
+      <cell />
+      <cell />
+      <cell />
+      <cell />
+      <cell />
+      <cell />
+      <cell />
+      <cell />
+      <cell />
+      <cell />
+      <cell />
+      <cell />
+      <cell />
+    </column>
+    <column>
+      <!-- 7 -->
+      <cell tile="floor" />
+      <cell />
+      <cell />
+      <cell />
+      <cell />
+      <cell />
+      <cell />
+      <cell />
+      <cell />
+      <cell />
+      <cell />
+      <cell />
+      <cell />
+      <cell />
+    </column>
+    <column>
+      <!-- 4 -->
+      <cell tile="floor" />
+      <cell />
+      <cell />
+      <cell />
+      <cell />
+      <cell />
+      <cell />
+      <cell />
+      <cell />
+      <cell />
+      <cell />
+      <cell />
+      <cell />
+      <cell />
+    </column>
+    <column>
+      <!-- 5 -->
+      <cell tile="floor" />
+      <cell />
+      <cell />
+      <cell />
+      <cell />
+      <cell />
+      <cell />
+      <cell />
+      <cell />
+      <cell />
+      <cell />
+      <cell />
+      <cell />
+      <cell />
+    </column>
+    <column>
+      <!-- 6 -->
+      <cell tile="floor" />
+      <cell />
+      <cell />
+      <cell />
+      <cell />
+      <cell />
+      <cell />
+      <cell />
+      <cell />
+      <cell />
+      <cell />
+      <cell />
+      <cell />
+      <cell />
+    </column>
+    <column>
+      <!-- 8 -->
+      <cell tile="floor" />
+      <cell />
+      <cell />
+      <cell />
+      <cell />
+      <cell />
+      <cell />
+      <cell />
+      <cell />
+      <cell />
+      <cell />
+      <cell />
+      <cell />
+      <cell />
+    </column>
+    <column>
+      <!-- 9 -->
+      <cell tile="floor" />
+      <cell />
+      <cell />
+      <cell />
+      <cell />
+      <cell />
+      <cell />
+      <cell />
+      <cell />
+      <cell />
+      <cell />
+      <cell />
+      <cell />
+      <cell />
+    </column>
+    <column>
+      <!-- 4 -->
+      <cell tile="floor" />
+      <cell />
+      <cell />
+      <cell />
+      <cell />
+      <cell />
+      <cell />
+      <cell />
+      <cell />
+      <cell />
+      <cell />
+      <cell />
+      <cell />
+      <cell />
+    </column>
+    <column>
+      <!-- 5 -->
+      <cell tile="floor" />
+      <cell />
+      <cell />
+      <cell />
+      <cell />
+      <cell />
+      <cell />
+      <cell />
+      <cell />
+      <cell />
+      <cell />
+      <cell />
+      <cell />
+      <cell />
+    </column>
+    <column>
+      <!-- 4 -->
+      <cell tile="floor" />
+      <cell />
+      <cell />
+      <cell />
+      <cell />
+      <cell />
+      <cell />
+      <cell />
+      <cell />
+      <cell />
+      <cell />
+      <cell />
+      <cell />
+      <cell />
+    </column>
+    <column>
+      <!-- 5 -->
+      <cell tile="floor" />
+      <cell />
+      <cell />
+      <cell />
+      <cell />
+      <cell />
+      <cell />
+      <cell />
+      <cell />
+      <cell />
+      <cell />
+      <cell />
+      <cell />
+      <cell />
+    </column>
+    <column>
+      <!-- 6 -->
+      <cell tile="floor" />
+      <cell />
+      <cell />
+      <cell />
+      <cell />
+      <cell />
+      <cell />
+      <cell />
+      <cell />
+      <cell />
+      <cell />
+      <cell />
+      <cell />
+      <cell />
+    </column>
+    <column>
+      <!-- 6 -->
+      <cell tile="floor" />
+      <cell />
+      <cell />
+      <cell />
+      <cell />
+      <cell />
+      <cell />
+      <cell />
+      <cell />
+      <cell />
+      <cell />
+      <cell />
+      <cell />
+      <cell />
+    </column>
+    <column>
+      <!-- 10 -->
+      <cell tile="floor" />
+      <cell />
+      <cell />
+      <cell />
+      <cell />
+      <cell />
+      <cell />
+      <cell />
+      <cell />
+      <cell />
+      <cell />
+      <cell />
+      <cell />
+      <cell />
+    </column>
+    <column>
+      <!-- 11 -->
+      <cell tile="floor" />
+      <cell />
+      <cell />
+      <cell />
+      <cell />
+      <cell />
+      <cell />
+      <cell />
+      <cell />
+      <cell />
+      <cell />
+      <cell />
+      <cell />
+      <cell />
+    </column>
+    <column>
+      <!-- 12 -->
+      <cell tile="floor" />
+      <cell />
+      <cell />
+      <cell />
+      <cell />
+      <cell />
+      <cell />
+      <cell />
+      <cell />
+      <cell />
+      <cell />
+      <cell />
+      <cell />
+      <cell />
+    </column>
+    <column>
+      <!-- 8 -->
+      <cell tile="floor" />
+      <cell />
+      <cell />
+      <cell />
+      <cell />
+      <cell />
+      <cell />
+      <cell />
+      <cell />
+      <cell />
+      <cell />
+      <cell />
+      <cell />
+      <cell />
+    </column>
+    <column>
+      <!-- 9 -->
+      <cell tile="floor" />
+      <cell />
+      <cell />
+      <cell />
+      <cell />
+      <cell />
+      <cell />
+      <cell />
+      <cell />
+      <cell />
+      <cell />
+      <cell />
+      <cell />
+      <cell />
+    </column>
+    <column>
+      <!-- 4 -->
+      <cell tile="floor" />
+      <cell />
+      <cell />
+      <cell />
+      <cell />
+      <cell />
+      <cell />
+      <cell />
+      <cell />
+      <cell />
+      <cell />
+      <cell />
+      <cell />
+      <cell />
+    </column>
+    <column>
+      <!-- 5 -->
+      <cell tile="floor" />
+      <cell />
+      <cell />
+      <cell />
+      <cell />
+      <cell />
+      <cell />
+      <cell />
+      <cell />
+      <cell />
+      <cell />
+      <cell />
+      <cell />
+      <cell />
+    </column>
+    <column>
+      <!-- 4 -->
+      <cell tile="floor" />
+      <cell />
+      <cell />
+      <cell />
+      <cell />
+      <cell />
+      <cell />
+      <cell />
+      <cell />
+      <cell />
+      <cell />
+      <cell />
+      <cell />
+      <cell />
+    </column>
+    <column>
+      <!-- 5 -->
+      <cell tile="floor" />
+      <cell />
+      <cell />
+      <cell />
+      <cell />
+      <cell />
+      <cell />
+      <cell />
+      <cell />
+      <cell />
+      <cell />
+      <cell />
+      <cell />
+      <cell />
+    </column>
+    <column>
+      <!-- 6 -->
+      <cell tile="floor" />
+      <cell />
+      <cell />
+      <cell />
+      <cell />
+      <cell />
+      <cell />
+      <cell />
+      <cell />
+      <cell />
+      <cell />
+      <cell />
+      <cell />
+      <cell />
+    </column>
+    <column>
+      <!-- 6 -->
+      <cell tile="floor" />
+      <cell />
+      <cell />
+      <cell />
+      <cell />
+      <cell />
+      <cell />
+      <cell />
+      <cell />
+      <cell />
+      <cell />
+      <cell />
+      <cell />
+      <cell />
+    </column>
+    <column>
+      <!-- 10 -->
+      <cell tile="floor" />
+      <cell />
+      <cell />
+      <cell />
+      <cell />
+      <cell />
+      <cell />
+      <cell />
+      <cell />
+      <cell />
+      <cell />
+      <cell />
+      <cell />
+      <cell />
+    </column>
+    <column>
+      <!-- 11 -->
+      <cell tile="floor" />
+      <cell />
+      <cell />
+      <cell />
+      <cell />
+      <cell />
+      <cell />
+      <cell />
+      <cell />
+      <cell />
+      <cell />
+      <cell />
+      <cell />
+      <cell />
+    </column>
+    <column>
+      <!-- 12 -->
+      <cell tile="floor" />
+      <cell />
+      <cell />
+      <cell />
+      <cell />
+      <cell />
+      <cell />
+      <cell />
+      <cell />
+      <cell />
+      <cell />
+      <cell />
+      <cell />
+      <cell />
+    </column>
+    <column>
+      <!-- 12 -->
+      <cell tile="floor" />
+      <cell />
+      <cell />
+      <cell />
+      <cell />
+      <cell />
+      <cell />
+      <cell />
+      <cell />
+      <cell />
+      <cell />
+      <cell />
+      <cell />
+      <cell />
+    </column>
+    <column>
+      <!-- 12 -->
+      <cell tile="floor" />
+      <cell />
+      <cell />
+      <cell />
+      <cell />
+      <cell />
+      <cell />
+      <cell />
+      <cell />
+      <cell />
+      <cell />
+      <cell />
+      <cell />
+      <cell />
+    </column>
+    <column>
+      <!-- 12 -->
+      <cell tile="floor" />
+      <cell />
+      <cell />
+      <cell />
+      <cell />
+      <cell />
+      <cell />
+      <cell />
+      <cell />
+      <cell />
+      <cell />
+      <cell />
+      <cell />
+      <cell />
+    </column>
+    <column>
+      <!-- 12 -->
+      <cell tile="floor" />
+      <cell />
+      <cell />
+      <cell />
+      <cell />
+      <cell />
+      <cell />
+      <cell />
+      <cell />
+      <cell />
+      <cell />
+      <cell />
+      <cell />
+      <cell />
+    </column>
+    <column>
+      <!-- 12 -->
+      <cell tile="floor" />
+      <cell />
+      <cell />
+      <cell />
+      <cell />
+      <cell />
+      <cell />
+      <cell />
+      <cell />
+      <cell />
+      <cell />
+      <cell />
+      <cell />
+      <cell />
+    </column>
+    <column>
+      <!-- 12 -->
+      <cell tile="floor" />
+      <cell />
+      <cell />
+      <cell />
+      <cell />
+      <cell />
+      <cell />
+      <cell />
+      <cell />
+      <cell />
+      <cell />
+      <cell />
+      <cell />
+      <cell />
+    </column>
+    <column>
+      <!-- 12 -->
+      <cell tile="floor" />
+      <cell />
+      <cell />
+      <cell />
+      <cell />
+      <cell />
+      <cell />
+      <cell />
+      <cell />
+      <cell />
+      <cell />
+      <cell />
+      <cell />
+      <cell />
+    </column>
+    <column>
+      <!-- 12 -->
+      <cell tile="floor" />
+      <cell />
+      <cell />
+      <cell />
+      <cell />
+      <cell />
+      <cell />
+      <cell />
+      <cell />
+      <cell />
+      <cell />
+      <cell />
+      <cell />
+      <cell />
+    </column>
+    <column>
+      <!-- 12 -->
+      <cell tile="floor" />
+      <cell />
+      <cell />
+      <cell />
+      <cell />
+      <cell />
+      <cell />
+      <cell />
+      <cell />
+      <cell />
+      <cell />
+      <cell />
+      <cell />
+      <cell />
+    </column>
+    <column>
+      <!-- 12 -->
+      <cell tile="floor" />
+      <cell />
+      <cell />
+      <cell />
+      <cell />
+      <cell />
+      <cell />
+      <cell />
+      <cell />
+      <cell />
+      <cell />
+      <cell />
+      <cell />
+      <cell />
+    </column>
+    <column>
+      <!-- 12 -->
+      <cell tile="floor" />
+      <cell />
+      <cell />
+      <cell />
+      <cell />
+      <cell />
+      <cell />
+      <cell />
+      <cell />
+      <cell />
+      <cell />
+      <cell />
+      <cell />
+      <cell />
+    </column>
+    <column>
+      <!-- 12 -->
+      <cell tile="floor" />
+      <cell />
+      <cell />
+      <cell />
+      <cell />
+      <cell />
+      <cell />
+      <cell />
+      <cell />
+      <cell />
+      <cell />
+      <cell />
+      <cell />
+      <cell />
+    </column>
+    <column>
+      <!-- 12 -->
+      <cell tile="floor" />
+      <cell />
+      <cell />
+      <cell />
+      <cell />
+      <cell />
+      <cell />
+      <cell />
+      <cell />
+      <cell />
+      <cell />
+      <cell />
+      <cell />
+      <cell />
+    </column>
+    <column>
+      <!-- 12 -->
+      <cell tile="floor" />
+      <cell />
+      <cell />
+      <cell />
+      <cell />
+      <cell />
+      <cell />
+      <cell />
+      <cell />
+      <cell />
+      <cell />
+      <cell />
+      <cell />
+      <cell />
+    </column>
+    <column>
+      <!-- 12 -->
+      <cell tile="floor" />
+      <cell />
+      <cell />
+      <cell />
+      <cell />
+      <cell />
+      <cell />
+      <cell />
+      <cell />
+      <cell />
+      <cell />
+      <cell />
+      <cell />
+      <cell />
+    </column>
+    <column>
+      <!-- 12 -->
+      <cell tile="floor" />
+      <cell />
+      <cell />
+      <cell />
+      <cell />
+      <cell />
+      <cell />
+      <cell />
+      <cell />
+      <cell />
+      <cell />
+      <cell />
+      <cell />
+      <cell />
+    </column>
+    <column>
+      <!-- 12 -->
+      <cell tile="floor" />
+      <cell />
+      <cell />
+      <cell />
+      <cell />
+      <cell />
+      <cell />
+      <cell />
+      <cell />
+      <cell />
+      <cell />
+      <cell />
+      <cell />
+      <cell />
+    </column>
+    <column>
+      <!-- 12 -->
+      <cell tile="floor" />
+      <cell />
+      <cell />
+      <cell />
+      <cell />
+      <cell />
+      <cell />
+      <cell />
+      <cell />
+      <cell />
+      <cell />
+      <cell />
+      <cell />
+      <cell />
+    </column>
+    <column>
+      <!-- 12 -->
+      <cell tile="floor" />
+      <cell />
+      <cell />
+      <cell />
+      <cell />
+      <cell />
+      <cell />
+      <cell />
+      <cell />
+      <cell />
+      <cell />
+      <cell />
+      <cell />
+      <cell />
+    </column>
+    <column>
+      <!-- 12 -->
+      <cell tile="floor" />
+      <cell />
+      <cell />
+      <cell />
+      <cell />
+      <cell />
+      <cell />
+      <cell />
+      <cell />
+      <cell />
+      <cell />
+      <cell />
+      <cell />
+      <cell />
+    </column>
+    <column>
+      <!-- 12 -->
+      <cell tile="floor" />
+      <cell />
+      <cell />
+      <cell />
+      <cell />
+      <cell />
+      <cell />
+      <cell />
+      <cell />
+      <cell />
+      <cell />
+      <cell />
+      <cell />
+      <cell />
+    </column>
+    <column>
+      <!-- 13 -->
+      <cell tile="floor" />
+      <cell tile="rightwall" />
+      <cell tile="rightwall" />
+      <cell tile="rightwall" />
+      <cell tile="rightwall" />
+      <cell tile="rightwall" />
+      <cell tile="rightwall" />
+      <cell tile="rightwall" />
+      <cell tile="rightwall" />
+      <cell tile="rightwall" />
+      <cell tile="rightwall" />
+      <cell tile="rightwall" />
+      <cell tile="rightwall" />
+      <cell tile="rightwall" />
+    </column>
+  </rectmap>
+</resource>
