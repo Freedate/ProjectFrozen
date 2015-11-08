@@ -75,7 +75,7 @@ def main():
     player_layer = layer.ScrollableLayer()
     # NOTE: the anchor for this sprite is in the CENTER (the cocos default)
     # which means all positioning must be done using the center of its rect
-    player = cocos.sprite.Sprite('res/test.png')
+    player = cocos.sprite.Sprite('res/fez.png')
     player_layer.add(player)
     player.do(PlatformerController())
 
@@ -95,11 +95,11 @@ def main():
     r.midbottom = start.midbottom
 
     # player image anchor (position) is in the center of the sprite
-    player.position = r.center
+    player.position = r.midtop
 
     # construct the scene with a background layer color and the scrolling layers
     platformer_scene = cocos.scene.Scene()
-    platformer_scene.add(layer.ColorLayer(0, 0, 0, 0), z=0)
+    platformer_scene.add(layer.ColorLayer(70, 200, 255, 255), z=0)
     platformer_scene.add(scroller, z=1)
 
     

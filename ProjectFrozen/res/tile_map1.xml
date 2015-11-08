@@ -2,6 +2,7 @@
 <resource>
   <imageatlas size="32x32" file="tile_1.png">
     <image id="i-floor" offset="0,0" />
+    <image id="i-floor2" offset ="32,0" />
 
     <image id="i-leftwall" offset="0,32" />
     
@@ -15,6 +16,10 @@
   <tileset>
     <tile id="floor">
       <image ref="i-floor" />
+      <property name="top" type="bool" value="True" />
+    </tile>
+        <tile id="floors">
+      <image ref="i-floor2" />
       <property name="top" type="bool" value="True" />
     </tile>
     <tile id="leftwall">
@@ -50,12 +55,13 @@
     </column>
     <column>
       <!-- 2 -->
-      <cell tile="floor" />
+      <cell tile="floors" />
+      <cell />
+      <cell />
       <cell tile ="startpoint">
         <property type="bool" name="player_start" value="True" />
       </cell>
-      <cell />
-      <cell />
+
       <cell />
       <cell />
       <cell />
@@ -69,7 +75,7 @@
     </column>
     <column>
       <!-- 3 -->
-      <cell tile="floor" />
+      <cell tile="floors" />
       <cell />
       <cell />
       <cell />
@@ -86,7 +92,7 @@
     </column>
     <column>
       <!-- 4 -->
-      <cell tile="floor" />
+      <cell tile="floors" />
       <cell />
       <cell />
       <cell />
@@ -103,7 +109,7 @@
     </column>
     <column>
       <!-- 5 -->
-      <cell tile="floor" />
+      <cell tile="floors" />
       <cell />
       <cell />
       <cell />
@@ -120,7 +126,7 @@
     </column>
     <column>
       <!-- 6 -->
-      <cell tile="floor" />
+      <cell tile="floors" />
       <cell />
       <cell />
       <cell />
@@ -137,7 +143,7 @@
     </column>
     <column>
       <!-- 7 -->
-      <cell tile="floor" />
+      <cell tile="floors" />
       <cell />
       <cell />
       <cell />
@@ -154,7 +160,7 @@
     </column>
     <column>
       <!-- 4 -->
-      <cell tile="floor" />
+      <cell tile="floors" />
       <cell />
       <cell />
       <cell />
@@ -171,7 +177,7 @@
     </column>
     <column>
       <!-- 5 -->
-      <cell tile="floor" />
+      <cell tile="floors" />
       <cell />
       <cell />
       <cell />
@@ -188,7 +194,7 @@
     </column>
     <column>
       <!-- 6 -->
-      <cell tile="floor" />
+      <cell tile="floors" />
       <cell />
       <cell />
       <cell />
@@ -205,7 +211,7 @@
     </column>
     <column>
       <!-- 8 -->
-      <cell tile="floor" />
+      <cell tile="floors" />
       <cell />
       <cell />
       <cell />
@@ -222,7 +228,7 @@
     </column>
     <column>
       <!-- 9 -->
-      <cell tile="floor" />
+      <cell tile="floors" />
       <cell />
       <cell />
       <cell />
@@ -239,7 +245,7 @@
     </column>
     <column>
       <!-- 4 -->
-      <cell tile="floor" />
+      <cell tile="floors" />
       <cell />
       <cell />
       <cell />
@@ -256,7 +262,7 @@
     </column>
     <column>
       <!-- 5 -->
-      <cell tile="floor" />
+      <cell tile="floors" />
       <cell />
       <cell />
       <cell />
@@ -273,7 +279,7 @@
     </column>
     <column>
       <!-- 4 -->
-      <cell tile="floor" />
+      <cell tile="floors" />
       <cell />
       <cell />
       <cell />
@@ -290,7 +296,7 @@
     </column>
     <column>
       <!-- 5 -->
-      <cell tile="floor" />
+      <cell tile="floors" />
       <cell />
       <cell />
       <cell />
@@ -307,7 +313,7 @@
     </column>
     <column>
       <!-- 6 -->
-      <cell tile="floor" />
+      <cell tile="floors" />
       <cell />
       <cell />
       <cell />
@@ -324,7 +330,7 @@
     </column>
     <column>
       <!-- 6 -->
-      <cell tile="floor" />
+      <cell tile="floors" />
       <cell />
       <cell />
       <cell />
@@ -341,7 +347,7 @@
     </column>
     <column>
       <!-- 10 -->
-      <cell tile="floor" />
+      <cell tile="floors" />
       <cell />
       <cell />
       <cell />
@@ -358,7 +364,7 @@
     </column>
     <column>
       <!-- 11 -->
-      <cell tile="floor" />
+      <cell tile="floors" />
       <cell />
       <cell />
       <cell />
@@ -375,7 +381,7 @@
     </column>
     <column>
       <!-- 12 -->
-      <cell tile="floor" />
+      <cell tile="floors" />
       <cell />
       <cell />
       <cell />
@@ -392,7 +398,7 @@
     </column>
     <column>
       <!-- 8 -->
-      <cell tile="floor" />
+      <cell tile="floors" />
       <cell />
       <cell />
       <cell />
@@ -409,7 +415,7 @@
     </column>
     <column>
       <!-- 9 -->
-      <cell tile="floor" />
+      <cell tile="floors" />
       <cell />
       <cell />
       <cell />
@@ -426,7 +432,7 @@
     </column>
     <column>
       <!-- 4 -->
-      <cell tile="floor" />
+      <cell tile="floors" />
       <cell />
       <cell />
       <cell />
@@ -443,7 +449,7 @@
     </column>
     <column>
       <!-- 5 -->
-      <cell tile="floor" />
+      <cell tile="floors" />
       <cell />
       <cell />
       <cell />
@@ -460,7 +466,7 @@
     </column>
     <column>
       <!-- 4 -->
-      <cell tile="floor" />
+      <cell tile="floors" />
       <cell />
       <cell />
       <cell />
@@ -477,7 +483,7 @@
     </column>
     <column>
       <!-- 5 -->
-      <cell tile="floor" />
+      <cell tile="floors" />
       <cell />
       <cell />
       <cell />
@@ -494,7 +500,7 @@
     </column>
     <column>
       <!-- 6 -->
-      <cell tile="floor" />
+      <cell tile="floors" />
       <cell />
       <cell />
       <cell />
@@ -511,7 +517,7 @@
     </column>
     <column>
       <!-- 6 -->
-      <cell tile="floor" />
+      <cell tile="floors" />
       <cell />
       <cell />
       <cell />
@@ -528,7 +534,7 @@
     </column>
     <column>
       <!-- 10 -->
-      <cell tile="floor" />
+      <cell tile="floors" />
       <cell />
       <cell />
       <cell />
@@ -545,7 +551,7 @@
     </column>
     <column>
       <!-- 11 -->
-      <cell tile="floor" />
+      <cell tile="floors" />
       <cell />
       <cell />
       <cell />
@@ -562,7 +568,7 @@
     </column>
     <column>
       <!-- 12 -->
-      <cell tile="floor" />
+      <cell tile="floors" />
       <cell />
       <cell />
       <cell />
@@ -579,7 +585,7 @@
     </column>
     <column>
       <!-- 12 -->
-      <cell tile="floor" />
+      <cell tile="floors" />
       <cell />
       <cell />
       <cell />
@@ -596,7 +602,7 @@
     </column>
     <column>
       <!-- 12 -->
-      <cell tile="floor" />
+      <cell tile="floors" />
       <cell />
       <cell />
       <cell />
@@ -613,7 +619,7 @@
     </column>
     <column>
       <!-- 12 -->
-      <cell tile="floor" />
+      <cell tile="floors" />
       <cell />
       <cell />
       <cell />
@@ -630,7 +636,7 @@
     </column>
     <column>
       <!-- 12 -->
-      <cell tile="floor" />
+      <cell tile="floors" />
       <cell />
       <cell />
       <cell />
@@ -647,7 +653,7 @@
     </column>
     <column>
       <!-- 12 -->
-      <cell tile="floor" />
+      <cell tile="floors" />
       <cell />
       <cell />
       <cell />
@@ -664,7 +670,7 @@
     </column>
     <column>
       <!-- 12 -->
-      <cell tile="floor" />
+      <cell tile="floors" />
       <cell />
       <cell />
       <cell />
@@ -681,7 +687,7 @@
     </column>
     <column>
       <!-- 12 -->
-      <cell tile="floor" />
+      <cell tile="floors" />
       <cell />
       <cell />
       <cell />
@@ -698,7 +704,7 @@
     </column>
     <column>
       <!-- 12 -->
-      <cell tile="floor" />
+      <cell tile="floors" />
       <cell />
       <cell />
       <cell />
@@ -715,7 +721,7 @@
     </column>
     <column>
       <!-- 12 -->
-      <cell tile="floor" />
+      <cell tile="floors" />
       <cell />
       <cell />
       <cell />
@@ -732,7 +738,7 @@
     </column>
     <column>
       <!-- 12 -->
-      <cell tile="floor" />
+      <cell tile="floors" />
       <cell />
       <cell />
       <cell />
@@ -749,7 +755,7 @@
     </column>
     <column>
       <!-- 12 -->
-      <cell tile="floor" />
+      <cell tile="floors" />
       <cell />
       <cell />
       <cell />
@@ -766,7 +772,7 @@
     </column>
     <column>
       <!-- 12 -->
-      <cell tile="floor" />
+      <cell tile="floors" />
       <cell />
       <cell />
       <cell />
@@ -783,7 +789,7 @@
     </column>
     <column>
       <!-- 12 -->
-      <cell tile="floor" />
+      <cell tile="floors" />
       <cell />
       <cell />
       <cell />
@@ -800,7 +806,7 @@
     </column>
     <column>
       <!-- 12 -->
-      <cell tile="floor" />
+      <cell tile="floors" />
       <cell />
       <cell />
       <cell />
@@ -817,7 +823,7 @@
     </column>
     <column>
       <!-- 12 -->
-      <cell tile="floor" />
+      <cell tile="floors" />
       <cell />
       <cell />
       <cell />
@@ -834,7 +840,7 @@
     </column>
     <column>
       <!-- 12 -->
-      <cell tile="floor" />
+      <cell tile="floors" />
       <cell />
       <cell />
       <cell />
@@ -851,7 +857,7 @@
     </column>
     <column>
       <!-- 12 -->
-      <cell tile="floor" />
+      <cell tile="floors" />
       <cell />
       <cell />
       <cell />
@@ -868,7 +874,7 @@
     </column>
     <column>
       <!-- 12 -->
-      <cell tile="floor" />
+      <cell tile="floors" />
       <cell />
       <cell />
       <cell />
@@ -885,7 +891,7 @@
     </column>
     <column>
       <!-- 12 -->
-      <cell tile="floor" />
+      <cell tile="floors" />
       <cell />
       <cell />
       <cell />
@@ -902,7 +908,7 @@
     </column>
     <column>
       <!-- 12 -->
-      <cell tile="floor" />
+      <cell tile="floors" />
       <cell />
       <cell />
       <cell />
@@ -919,7 +925,7 @@
     </column>
     <column>
       <!-- 12 -->
-      <cell tile="floor" />
+      <cell tile="floors" />
       <cell />
       <cell />
       <cell />
@@ -936,7 +942,7 @@
     </column>
     <column>
       <!-- 13 -->
-      <cell tile="floor" />
+      <cell tile="floors" />
       <cell tile="rightwall" />
       <cell tile="rightwall" />
       <cell tile="rightwall" />
