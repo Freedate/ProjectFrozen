@@ -30,6 +30,7 @@ LIGHTBLUE   = ( 20,  20, 175)
 YELLOW      = (155, 155,   0)
 LIGHTYELLOW = (175, 175,  20)
 COLORS      = (     BLUE,      GREEN,      RED,      YELLOW)
+BLOCKTYPE = ('images/block_1.png','images/ground_2.png','images/underground_6.png','images/box.png')
 
 BORDERCOLOR = LIGHTBLUE
 BGCOLOR = BLACK
@@ -158,13 +159,13 @@ m_fallingTetris = {'shape': initShape,
                 'rotation': random.randint(0, len(PIECES[initShape]) - 1),
                 'x': int(BOARD_WIDTH_CNT / 2),
                 'y': -2, # start it above the board (i.e. less than 0)
-                'color': random.randint(0, len(COLORS)-1)}
+                'color': random.randint(0, len(BLOCKTYPE)-1)}
 initShape2 = random.choice(list(PIECES.keys()))
 m_nextTetris = {'shape': initShape2,
                 'rotation': random.randint(0, len(PIECES[initShape2]) - 1),
                 'x': int(BOARD_WIDTH_CNT / 2),
                 'y': -2, # start it above the board (i.e. less than 0)
-                'color': random.randint(0, len(COLORS)-1)}
+                'color': random.randint(0, len(BLOCKTYPE)-1)}
 
 
 #### Fez
@@ -176,7 +177,7 @@ FEZ_SPEED = 5
 FEZ_WIDTH_SIZE = 27
 FEZ_HEIGHT_SIZE = 37
 FEZ_START_X = TETRIS_LEFT_GAP+BOXSIZE
-FEZ_START_Y = TETRIS_TOP_GAP+(BOARD_HEIGHT_CNT-4)*BOXSIZE-10
+FEZ_START_Y = TETRIS_TOP_GAP+(BOARD_HEIGHT_CNT-4)*BOXSIZE-160
 FEZ_LEG_LEFT_GAP = 8
 FEZ_LEG_RIGHT_GAP = 11
 FEZ_FACE_HEIGHT = 14
@@ -187,10 +188,14 @@ FEZ_IMG_RIGHT2 = pygame.image.load('images/char_idle_2.png')
 FEZ_IMG_LEFT2 = pygame.transform.flip(FEZ_IMG_RIGHT2,True,False)
 FEZ_IMG_RIGHT3 = pygame.image.load('images/char_idle_3.png')
 FEZ_IMG_LEFT3 = pygame.transform.flip(FEZ_IMG_RIGHT3,True,False)
+
 FEZ_IMG_RUN_RIGHT = pygame.image.load('images/char_run_1.png')
 FEZ_IMG_RUN_LEFT = pygame.transform.flip(FEZ_IMG_RUN_RIGHT,True,False)
 FEZ_IMG_RUN_RIGHT2 = pygame.image.load('images/char_run_2.png')
 FEZ_IMG_RUN_LEFT2 = pygame.transform.flip(FEZ_IMG_RUN_RIGHT2,True,False)
+FEZ_IMG_RUN_RIGHT3 = pygame.image.load('images/char_run_3.png')
+FEZ_IMG_RUN_LEFT3 = pygame.transform.flip(FEZ_IMG_RUN_RIGHT3,True,False)
+
 FEZ_IMG_JUMP_RIGHT = pygame.image.load('images/char_jump_1.png')
 FEZ_IMG_JUMP_LEFT = pygame.transform.flip(FEZ_IMG_JUMP_RIGHT,True,False)
 FEZ_IMG_JUMP_RIGHT2 = pygame.image.load('images/char_jump_2.png')
