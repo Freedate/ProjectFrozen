@@ -1,23 +1,20 @@
-﻿
-import time
+﻿import time
 import random
 from enum import Enum
 import pygame, sys
-from pygame.locals import *     # ���̰��� ��� ����ϱ� ����
+from pygame.locals import *     
 
-## ���
 FPS = 25
-WINDOWWIDTH = 640
-WINDOWHEIGHT = 480
-BOXSIZE = 20
-BOARD_WIDTH_CNT = 30
-BOARD_HEIGHT_CNT = 20
+WINDOWWIDTH = 800
+WINDOWHEIGHT = 540
+BOXSIZE = 16
+BOARD_WIDTH_CNT = 48
+BOARD_HEIGHT_CNT = 28
 TETRIS_WIDTH_CNT = 5
 TETRIS_HEIGHT_CNT = 5
 TETRIS_LEFT_GAP = 20
 TETRIS_TOP_GAP = 10
 BLANK = '.'
-# ONMAP = GRAY
 
 
 # color
@@ -34,73 +31,10 @@ YELLOW      = (155, 155,   0)
 LIGHTYELLOW = (175, 175,  20)
 COLORS      = (     BLUE,      GREEN,      RED,      YELLOW)
 
-BORDERCOLOR = BLUE
+BORDERCOLOR = LIGHTBLUE
 BGCOLOR = BLACK
 TEXTCOLOR = WHITE
 TEXTSHADOWCOLOR = GRAY
-
-class CharSprite(pygame.sprite.Sprite):
- 
-    def __init__(self, image, position):
-        pygame.sprite.Sprite.__init__(self)
-        self.user_src_image = pygame.image.load(image)
-        self.user_position = position
-        self.user_speed = 0
-        self.jump_speed = 5
-        self.is_jumping = False
-        self.on_ground = False
-        self.origin_pos = position
-        self.highst = False
-        self.image = self.user_src_image
-        self.rect = self.image.get_rect()
-
- 
-    def update(self, Map):
-        x, y = self.user_position
-        tx, ty = self.origin_pos
-        x += self.user_speed
-
-        top = TETRIS_TOP_GAP+BOARD_HEIGHT_CNT*BOXSIZE
-        bStop = False
-        for map_X in range(BOARD_WIDTH_CNT):
-            coordX1 = TETRIS_LEFT_GAP+map_X*BOXSIZE
-            coordX2 = TETRIS_LEFT_GAP+(map_X+1)*BOXSIZE
-            if x >= coordX1 and x < coordX2:
-                # 캐릭터가 있는 맵의 x 인덱스
-                for map_Y in range(BOARD_HEIGHT_CNT-1,0,-1):
-                    if Map[map_Y][map_X] != BLANK:
-                        top = TETRIS_TOP_GAP+(map_Y)*BOXSIZE
-                        bStop = True
-                        break
-                if bStop:
-                    break
-
-        if self.rect.bottom >= top:
-            self.on_ground = True
-            self.origin_pos = self.user_position
-        else:
-            self.on_ground = False
-
-        if self.on_ground==False:
-            y += 2
-        
-
-        if self.is_jumping:
-            if self.highst==True:
-                y += self.jump_speed
-                if y >= top:
-                    self.is_jumping = False
-                    self.highst = False
-            else :
-                y -= self.jump_speed
-            if y < top-40:
-                self.highst = True
-
-        self.user_position = (x, y)
- 
-        self.image = self.user_src_image
-        self.rect = self.image.get_rect()
-        self.rect.center = self.user_position
 
 # block type
 S_SHAPE_TEMPLATE = [['.....',
@@ -232,9 +166,47 @@ m_nextTetris = {'shape': initShape2,
                 'y': -2, # start it above the board (i.e. less than 0)
                 'color': random.randint(0, len(COLORS)-1)}
 
-char = CharSprite('fez.png', (40,300))
-char_group = pygame.sprite.RenderPlain(char)
 
+#### Fez
+FEZ_CAMERASLACK = 90
+FEZ_MOVERATE = 9
+FEZ_BOUNCERATE = 6
+FEZ_BOUNCEHEIGHT = 30
+FEZ_SPEED = 5
+FEZ_WIDTH_SIZE = 27
+FEZ_HEIGHT_SIZE = 37
+FEZ_START_X = TETRIS_LEFT_GAP+BOXSIZE
+FEZ_START_Y = TETRIS_TOP_GAP+(BOARD_HEIGHT_CNT-4)*BOXSIZE-10
+FEZ_LEG_LEFT_GAP = 8
+FEZ_LEG_RIGHT_GAP = 11
+FEZ_FACE_HEIGHT = 14
 
+FEZ_IMG_RIGHT = pygame.image.load('images/char_idle_1.png')
+FEZ_IMG_LEFT = pygame.transform.flip(FEZ_IMG_RIGHT,True,False)
+FEZ_IMG_RIGHT2 = pygame.image.load('images/char_idle_2.png')
+FEZ_IMG_LEFT2 = pygame.transform.flip(FEZ_IMG_RIGHT2,True,False)
+FEZ_IMG_RIGHT3 = pygame.image.load('images/char_idle_3.png')
+FEZ_IMG_LEFT3 = pygame.transform.flip(FEZ_IMG_RIGHT3,True,False)
+FEZ_IMG_RUN_RIGHT = pygame.image.load('images/char_run_1.png')
+FEZ_IMG_RUN_LEFT = pygame.transform.flip(FEZ_IMG_RUN_RIGHT,True,False)
+FEZ_IMG_RUN_RIGHT2 = pygame.image.load('images/char_run_2.png')
+FEZ_IMG_RUN_LEFT2 = pygame.transform.flip(FEZ_IMG_RUN_RIGHT2,True,False)
+FEZ_IMG_JUMP_RIGHT = pygame.image.load('images/char_jump_1.png')
+FEZ_IMG_JUMP_LEFT = pygame.transform.flip(FEZ_IMG_JUMP_RIGHT,True,False)
+FEZ_IMG_JUMP_RIGHT2 = pygame.image.load('images/char_jump_2.png')
+FEZ_IMG_JUMP_LEFT2 = pygame.transform.flip(FEZ_IMG_JUMP_RIGHT2,True,False)
+FEZ_IMG_JUMP_RIGHT3 = pygame.image.load('images/char_jump_3.png')
+FEZ_IMG_JUMP_LEFT3 = pygame.transform.flip(FEZ_IMG_JUMP_RIGHT3,True,False)
+FEZ_IMG_JUMP_RIGHT4 = pygame.image.load('images/char_jump_4.png')
+FEZ_IMG_JUMP_LEFT4 = pygame.transform.flip(FEZ_IMG_JUMP_RIGHT4,True,False)
+
+fez = {'img':FEZ_IMG_RIGHT,'dir':'right','width':FEZ_WIDTH_SIZE,'height':FEZ_HEIGHT_SIZE,
+       'topX':FEZ_START_X,'topY':FEZ_START_Y,
+       'leftLegX':FEZ_START_X+FEZ_LEG_LEFT_GAP,'rightLegX':FEZ_START_X+FEZ_WIDTH_SIZE-FEZ_LEG_RIGHT_GAP,
+       'botY':FEZ_START_Y+FEZ_HEIGHT_SIZE,'jump':9999,'speed':FEZ_SPEED}
+
+fezMoveLeft = False
+fezMoveRight = False
+fezJump = False
 
 

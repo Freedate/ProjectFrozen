@@ -1,9 +1,9 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio 2013
-VisualStudioVersion = 12.0.40629.0
+VisualStudioVersion = 12.0.31101.0
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{888888A0-9F3D-457C-B088-3A5042F75D52}") = "st", "st\st.pyproj", "{7B3C9592-E7A7-410D-AF44-A7136A744D11}"
+Project("{888888A0-9F3D-457C-B088-3A5042F75D52}") = "PythonFrozen1", "PythonFrozen1\PythonFrozen1.pyproj", "{E44C95A9-DF88-458B-A7B8-C9F0CE4E51AE}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -11,8 +11,8 @@ Global
 		Release|Any CPU = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(ProjectConfigurationPlatforms) = postSolution
-		{7B3C9592-E7A7-410D-AF44-A7136A744D11}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{7B3C9592-E7A7-410D-AF44-A7136A744D11}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{E44C95A9-DF88-458B-A7B8-C9F0CE4E51AE}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{E44C95A9-DF88-458B-A7B8-C9F0CE4E51AE}.Release|Any CPU.ActiveCfg = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
