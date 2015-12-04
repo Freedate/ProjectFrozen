@@ -212,5 +212,8 @@ fez = {'img':FEZ_IMG_RIGHT,'dir':'right','width':FEZ_WIDTH_SIZE,'height':FEZ_HEI
 fezMoveLeft = False
 fezMoveRight = False
 fezJump = False
+fezFall = False
 
-
+g_time = time.time()
+f_time = time.time()
+c_time = time.time()

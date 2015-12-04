@@ -9,7 +9,7 @@ def initProcess():
 
 def inputProcess():
     checkForQuit()
-    global  fezJump, fezMoveLeft, fezMoveRight
+    global  fezJump, fezMoveLeft, fezMoveRight, fezFall
     # block move
     if pygame.key.get_pressed()[pygame.K_DOWN] != 0:
         if checkDown() == True:
@@ -38,10 +38,10 @@ def inputProcess():
                 print("space")
                 fullDown()
             elif pygame.key.get_pressed()[pygame.K_w] != 0:
-                if fezJump == False:
-                   global c_time
-                   c_time = g_time
-                   fezJump = True
+                if fezJump == False and fezFall == False:
+                    global c_time
+                    c_time = g_time
+                    fezJump = True
 
             # fez move
             elif event.type == KEYDOWN:
@@ -70,7 +70,7 @@ tetris_time = time.time()
 def dataProcess():
     global m_GameStep
     global m_fallingTetris
-    global tetris_time, fez_time
+    global tetris_time, fez_time, f_time
     curTime = time.time()
 
     # fez
@@ -80,13 +80,10 @@ def dataProcess():
 
     moveFez()
     jumpFez()
-
     if collisionBlockDown(fez['leftLegX'],fez['rightLegX'],fez['botY']) == False:
-        # 페즈 밑에 바닥이 없으면
-        fez['topY'] += fez['speed']
-        fez['botY'] += fez['speed']
-    #else:
-    #    fezJump = False
+       fallFez()
+
+    
 
     # tetris
     if curTime-tetris_time >= 0.3:
@@ -121,7 +118,6 @@ def renderProcess():
 def releaseProcess():
     return
 
-g_time = time.time()
 def mainLoop():
     global g_time
     curTime = time.time()
@@ -138,17 +134,8 @@ def initMap():
 
     # 밑바닥 맵 랜덤
     for i in range(BOARD_WIDTH_CNT):
-        ranNum = random.randint(0,5)
-        if ranNum == 0:
-            m_Map[BOARD_HEIGHT_CNT-1][i] = BLANK
-        elif ranNum == 1:
-            m_Map[BOARD_HEIGHT_CNT-1][i] = 0
-        elif ranNum == 2:
-            m_Map[BOARD_HEIGHT_CNT-1][i] = 1
-        elif ranNum == 3:
-            m_Map[BOARD_HEIGHT_CNT-1][i] = 2
-        elif ranNum == 4:
-            m_Map[BOARD_HEIGHT_CNT-1][i] = 3
+        m_Map[BOARD_HEIGHT_CNT-1][i] = 2
+
 
     # 밑바닥-1 맵 랜덤
     for i in range(BOARD_WIDTH_CNT):
@@ -260,35 +247,138 @@ def convertPixelToMapIdx(x,y):
                     break
     return mapIdxX, mapIdxY
 
-def collisionBlockDown(leftx, rightx, y):
-
-    fez_leftX, fez_legY = convertPixelToMapIdx(fez['leftLegX']-5, fez['botY'])
-    fez_rightX, fez_legY = convertPixelToMapIdx(fez['rightLegX']-5, fez['botY'])
-    
-    if fez_legY != 0 and fez_legY<BOARD_HEIGHT_CNT:
-        if m_Map[fez_legY][fez_leftX] == BLANK and m_Map[fez_legY][fez_rightX] == BLANK:
-            return False
-    return True
 #def collisionBlockDown(leftx, rightx, y):
-#    charMapX_l, charMapY = convertPixelToMapIdx(leftx,y+fez['speed'])
-#    charMapX_r, charMapY = convertPixelToMapIdx(rightx,y+fez['speed'])
-    
-#    legRect = pygame.Rect(leftx,y-0.01,8,0.01)           # fez 하체 직사각형
-         
-#    leftMapX, leftMapY = convertMapIdxToPixel(charMapX_l,charMapY)
-#    leftMapRect = pygame.Rect(leftMapX,leftMapY,BOXSIZE,BOXSIZE)
-#    rightMapX, rightMapY = convertMapIdxToPixel(charMapX_r,charMapY)
-#    rightMapRect = pygame.Rect(rightMapX,rightMapY,BOXSIZE,BOXSIZE)
+#    global fezFall, f_time
 
-#    if m_Map[charMapY][charMapX_l] != BLANK and legRect.colliderect(leftMapRect):
-#        #fez['botY'] = leftMapY
-#        #fez['topY'] = leftMapY-fez['height']
-#        return True
-#    if m_Map[charMapY][charMapX_r] != BLANK and legRect.colliderect(rightMapRect):
-#        #fez['botY'] = rightMapY
-#        #fez['topY'] = rightMapY-fez['height']
-#        return True
-#    return False
+#    fez_leftX, fez_legY = convertPixelToMapIdx(fez['leftLegX']-5, fez['botY']+5)
+#    fez_rightX, fez_legY = convertPixelToMapIdx(fez['rightLegX']-5, fez['botY']+5)
+    
+#    if fez_legY != 0 and fez_legY<BOARD_HEIGHT_CNT:
+#        if m_Map[fez_legY][fez_leftX] == BLANK and m_Map[fez_legY][fez_rightX] == BLANK:
+#            fezFall = False
+#            return False
+#    if fezFall == False:
+#        f_time = time.time()
+#        fezFall = True
+#    return True
+
+def collisionBlockDown(leftx, rightx, y):
+    global f_time, fezFall
+    charMapX_l, charMapY = convertPixelToMapIdx(leftx-5,y)
+    charMapX_r, charMapY = convertPixelToMapIdx(rightx-5,y)
+    
+    legRect = pygame.Rect(leftx,y-16,10,16)           # fez 하체 직사각형
+         
+    leftMapX, leftMapY = convertMapIdxToPixel(charMapX_l,charMapY)
+    leftMapRect = pygame.Rect(leftMapX-3,leftMapY-3,BOXSIZE+6,BOXSIZE+6)
+    rightMapX, rightMapY = convertMapIdxToPixel(charMapX_r,charMapY)
+    rightMapRect = pygame.Rect(rightMapX-3,rightMapY-3,BOXSIZE+6,BOXSIZE+6)
+
+    # 바닥에 닿은 경우
+    if m_Map[charMapY][charMapX_l] != BLANK and legRect.colliderect(leftMapRect):
+        fez['botY'] = leftMapY
+        fez['topY'] = fez['botY']-fez['height']
+        fez['jump'] = 9999
+        fezFall = False
+        return True
+    if m_Map[charMapY][charMapX_r] != BLANK and legRect.colliderect(rightMapRect):
+        fez['botY'] = rightMapY
+        fez['topY'] = fez['botY']-fez['height']
+        fez['jump'] = 9999
+        fezFall = False
+        return True
+    # 바닥이 없는 경우
+    if fezFall == False:
+        f_time = time.time()
+        fezFall = True
+    return False
+
+
+def moveFez():
+    if fezMoveLeft == True:
+        #print("fezleft")
+        fez_topX, fez_topY = convertPixelToMapIdx(fez['topX']-fez['speed'], fez['topY'])
+        fez_faceX, fez_faceY = convertPixelToMapIdx(fez['topX']-fez['speed'], fez['topY']+FEZ_FACE_HEIGHT)
+        fez_legX, fez_legY = convertPixelToMapIdx(fez['leftLegX']-5-fez['speed'], fez['botY']-5)
+        if m_Map[fez_topY][fez_topX] == BLANK and m_Map[fez_faceY][fez_faceX] == BLANK and m_Map[fez_legY][fez_legX] == BLANK:
+            fez['topX'] -= fez['speed']
+            fez['leftLegX'] = fez['topX'] + FEZ_LEG_RIGHT_GAP
+            fez['rightLegX'] = fez['topX'] + (FEZ_WIDTH_SIZE-FEZ_LEG_LEFT_GAP)
+
+    elif fezMoveRight == True:
+        #print("fezright")
+        fez_topX, fez_topY = convertPixelToMapIdx(fez['topX']+fez['speed']+fez['width']/2, fez['topY'])
+        fez_faceX, fez_faceY = convertPixelToMapIdx(fez['topX']+fez['speed']+fez['width']/2, fez['topY']+FEZ_FACE_HEIGHT)
+        fez_legX, fez_legY = convertPixelToMapIdx(fez['rightLegX']-5+fez['speed'], fez['botY']-5)
+        if m_Map[fez_topY][fez_topX] == BLANK and m_Map[fez_faceY][fez_faceX] == BLANK and m_Map[fez_legY][fez_legX] == BLANK:
+            fez['topX'] += fez['speed']
+            fez['leftLegX'] = fez['topX'] + FEZ_LEG_LEFT_GAP
+            fez['rightLegX'] = fez['topX'] + (FEZ_WIDTH_SIZE-FEZ_LEG_RIGHT_GAP)
+
+
+def fallFez():
+    global g_time, f_time
+    if fezJump == False:
+        if collisionBlockDown(fez['leftLegX'],fez['rightLegX'],fez['botY']) == True:
+            fez['jump'] = 9999
+        vel = g_time - f_time
+        v = -vel*20
+        print(v)
+        
+        fez['jump'] = v
+        fez['topY'] = fez['topY'] - v
+        fez['botY'] = fez['topY'] + fez['height']
+
+def jumpFez():
+    global fezJump, g_time, c_time
+    if fezJump:
+        vel = g_time - c_time
+        v = 25 - vel*100
+        fez['jump'] = v     # v가 +면 올라가는 중
+        fez['topY'] = fez['topY'] - v
+        fez['botY'] = fez['topY'] + fez['height']
+
+        if v<=0:
+            # 최고점
+            fezJump = False
+            fezFall = True
+       
+def collisionUp(x,y):
+    fezHeadRect = pygame.Rect(fez['topX'],fez['topY'],fez['width'],fez['width'])
+    for i in range(BOARD_HEIGHT_CNT-1,0,-1):
+        for j in range(BOARD_WIDTH_CNT):
+            if m_Map[i][j] != BLANK:
+                x,y = convertMapIdxToPixel(j,i)
+                blockRect = pygame.Rect(x,y,BOXSIZE,BOXSIZE)
+                if fezHeadRect.colliderect(blockRect):
+                    return True
+    return False
+
+
+# render
+def drawBoard():
+    pygame.draw.rect(DISPLAYSURF, BORDERCOLOR, (TETRIS_LEFT_GAP, TETRIS_TOP_GAP, (BOARD_WIDTH_CNT * BOXSIZE) + 8, (BOARD_HEIGHT_CNT * BOXSIZE) + 8), 5)
+    for y in range(BOARD_HEIGHT_CNT):
+        for x in range(BOARD_WIDTH_CNT):
+            drawBox(y, x, m_Map[y][x])
+def drawBox(y,x,color):
+    if color==BLANK:
+        return
+    blockImg = pygame.image.load(BLOCKTYPE[color])
+    blockRect = pygame.Rect((TETRIS_LEFT_GAP+x*BOXSIZE+6,TETRIS_TOP_GAP+y*BOXSIZE+5,BOXSIZE-1,BOXSIZE-1))
+    DISPLAYSURF.blit(blockImg,blockRect)
+    # pygame.draw.rect(DISPLAYSURF,COLORS[color],(TETRIS_LEFT_GAP+x*BOXSIZE+6,TETRIS_TOP_GAP+y*BOXSIZE+5,BOXSIZE-1,BOXSIZE-1))
+
+def drawMovingTetris():
+    for x in range(TETRIS_WIDTH_CNT):
+        for y in range(TETRIS_HEIGHT_CNT):
+            if PIECES[m_fallingTetris['shape']][m_fallingTetris['rotation']][y][x] != BLANK:
+                map_X, map_Y = convertBlockIdxToMapIdx(x,y,m_fallingTetris)
+                drawBox(map_Y,map_X,m_fallingTetris['color'])
+
+def drawFez():
+    fez['rect'] = pygame.Rect((fez['topX'],fez['topY'],fez['width'],fez['height']))
+    DISPLAYSURF.blit(fez['img'],fez['rect'])
 
 
 def imgSprite():
@@ -348,81 +438,6 @@ def imgSprite():
                 fez['img'] = FEZ_IMG_LEFT3
             else:
                 fez['img'] = FEZ_IMG_LEFT
-def moveFez():
-    if fezMoveLeft == True:
-        #print("fezleft")
-        fez_topX, fez_topY = convertPixelToMapIdx(fez['topX']-fez['speed'], fez['topY'])
-        fez_faceX, fez_faceY = convertPixelToMapIdx(fez['topX']-fez['speed'], fez['topY']+FEZ_FACE_HEIGHT)
-        fez_legX, fez_legY = convertPixelToMapIdx(fez['leftLegX']-5-fez['speed'], fez['botY']-5)
-        if m_Map[fez_topY][fez_topX] == BLANK and m_Map[fez_faceY][fez_faceX] == BLANK and m_Map[fez_legY][fez_legX] == BLANK:
-            fez['topX'] -= fez['speed']
-            fez['leftLegX'] = fez['topX'] + FEZ_LEG_RIGHT_GAP
-            fez['rightLegX'] = fez['topX'] + (FEZ_WIDTH_SIZE-FEZ_LEG_LEFT_GAP)
-
-    elif fezMoveRight == True:
-        #print("fezright")
-        fez_topX, fez_topY = convertPixelToMapIdx(fez['topX']+fez['speed']+fez['width']/2, fez['topY'])
-        fez_faceX, fez_faceY = convertPixelToMapIdx(fez['topX']+fez['speed']+fez['width']/2, fez['topY']+FEZ_FACE_HEIGHT)
-        fez_legX, fez_legY = convertPixelToMapIdx(fez['rightLegX']-5+fez['speed'], fez['botY']-5)
-        if m_Map[fez_topY][fez_topX] == BLANK and m_Map[fez_faceY][fez_faceX] == BLANK and m_Map[fez_legY][fez_legX] == BLANK:
-            fez['topX'] += fez['speed']
-            fez['leftLegX'] = fez['topX'] + FEZ_LEG_LEFT_GAP
-            fez['rightLegX'] = fez['topX'] + (FEZ_WIDTH_SIZE-FEZ_LEG_RIGHT_GAP)
-
-def jumpFez():
-    global fezJump, g_time, c_time
-    if fezJump:
-        vel = g_time - c_time
-        v = 25 - vel*100
-        fez['jump'] = v     # v가 +면 올라가는 중
-        fez['topY'] = fez['topY'] - v
-        fez['botY'] = fez['topY'] + fez['height']
-
-        if collisionBlockDown(fez['leftLegX'],fez['rightLegX'],fez['botY']) == True:
-            fez['jump'] = 9999
-            fezJump = False
-
-        #if fez['topY'] >= 10:      # 조건문 추후 '바닥과 충돌할 경우'로 수정
-        #if v <= -40:      # 조건문 추후 '바닥과 충돌할 경우'로 수정
-        #    fez['topY'] = 10
-        #    fez['botY'] = fez['topY'] + fez['height']
-        #    fez['jump'] = 9999
-        #    fezJump = False
-def 
-def fallFez():
-    global g_time, c_time
-    vel = g_time - c_time
-    v = -vel*100
-    print(v)
-    if v<-40:
-        v = -40
-    fez['topY'] = fez['topY'] - v
-    fez['botY'] = fez['topY'] + fez['height']
-
-# render
-def drawBoard():
-    pygame.draw.rect(DISPLAYSURF, BORDERCOLOR, (TETRIS_LEFT_GAP, TETRIS_TOP_GAP, (BOARD_WIDTH_CNT * BOXSIZE) + 8, (BOARD_HEIGHT_CNT * BOXSIZE) + 8), 5)
-    for y in range(BOARD_HEIGHT_CNT):
-        for x in range(BOARD_WIDTH_CNT):
-            drawBox(y, x, m_Map[y][x])
-def drawBox(y,x,color):
-    if color==BLANK:
-        return
-    blockImg = pygame.image.load(BLOCKTYPE[color])
-    blockRect = pygame.Rect((TETRIS_LEFT_GAP+x*BOXSIZE+6,TETRIS_TOP_GAP+y*BOXSIZE+5,BOXSIZE-1,BOXSIZE-1))
-    DISPLAYSURF.blit(blockImg,blockRect)
-    # pygame.draw.rect(DISPLAYSURF,COLORS[color],(TETRIS_LEFT_GAP+x*BOXSIZE+6,TETRIS_TOP_GAP+y*BOXSIZE+5,BOXSIZE-1,BOXSIZE-1))
-
-def drawMovingTetris():
-    for x in range(TETRIS_WIDTH_CNT):
-        for y in range(TETRIS_HEIGHT_CNT):
-            if PIECES[m_fallingTetris['shape']][m_fallingTetris['rotation']][y][x] != BLANK:
-                map_X, map_Y = convertBlockIdxToMapIdx(x,y,m_fallingTetris)
-                drawBox(map_Y,map_X,m_fallingTetris['color'])
-
-def drawFez():
-    fez['rect'] = pygame.Rect((fez['topX'],fez['topY'],fez['width'],fez['height']))
-    DISPLAYSURF.blit(fez['img'],fez['rect'])
 # release
 
 #### other functions
