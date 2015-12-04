@@ -65,7 +65,11 @@ def inputProcess():
                 fezMoveRight = False
             if event.key == K_w:
                 fezJump = False
+<<<<<<< HEAD
     
+=======
+                
+>>>>>>> 8559a3d81db13f2db1d85921dadfbd273409e6b1
     return
 
 fez_time = time.time()
@@ -236,11 +240,14 @@ def moveComponents():
     fez['topX'] -= SCREEN_SPEED
     fez['rightLegX'] -= SCREEN_SPEED
     fez['leftLegX'] -= SCREEN_SPEED
+<<<<<<< HEAD
     global MOVEBLOCK, MOVECNT
     MOVEBLOCK += SCREEN_SPEED
     if MOVEBLOCK % BOXSIZE == 0 :
         MOVECNT += 1
 
+=======
+>>>>>>> 8559a3d81db13f2db1d85921dadfbd273409e6b1
 
 
 def newTetris():
@@ -424,11 +431,19 @@ def drawBoard():
     for y in range(BOARD_HEIGHT_CNT):
         for x in range(BOARD_WIDTH_CNT):
             drawBox(m_Map[y][x].y, m_Map[y][x].x, m_Map[y][x].type)
+<<<<<<< HEAD
+=======
+            drawBox(m_Map2[y][x].y, m_Map2[y][x].x, m_Map2[y][x].type)
+>>>>>>> 8559a3d81db13f2db1d85921dadfbd273409e6b1
     pygame.draw.rect(DISPLAYSURF, BORDERCOLOR, (TETRIS_LEFT_GAP, TETRIS_TOP_GAP, (BOARD_WIDTH_CNT * BOXSIZE) + 8, (BOARD_HEIGHT_CNT * BOXSIZE) + 8), 5)
 
 def drawBound():
     pygame.draw.rect(DISPLAYSURF, BLACK, (0,TETRIS_TOP_GAP-5,TETRIS_LEFT_GAP-2,BOARD_HEIGHT_CNT*BOXSIZE+30))
+<<<<<<< HEAD
     # pygame.draw.rect(DISPLAYSURF, BLACK, (TETRIS_LEFT_GAP+BOARD_WIDTH_CNT*BOXSIZE+5,TETRIS_TOP_GAP-5,0,BOARD_HEIGHT_CNT*BOXSIZE+30))
+=======
+    pygame.draw.rect(DISPLAYSURF, BLACK, (TETRIS_LEFT_GAP+BOARD_WIDTH_CNT*BOXSIZE+5,TETRIS_TOP_GAP-5,1,BOARD_HEIGHT_CNT*BOXSIZE+30))
+>>>>>>> 8559a3d81db13f2db1d85921dadfbd273409e6b1
 
 def drawBox(y,x,color):
     if color==BLANK:
