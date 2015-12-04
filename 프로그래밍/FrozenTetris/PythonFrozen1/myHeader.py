@@ -7,7 +7,7 @@ from pygame.locals import *
 FPS = 25
 WINDOWWIDTH = 800
 WINDOWHEIGHT = 540
-SCREEN_SPEED = 10
+SCREEN_SPEED = 1
 
 ## tetris
 BOXSIZE = 16
@@ -62,11 +62,11 @@ Z_SHAPE_TEMPLATE = [['.....',
                      '.O...',
                      '.....']]
 
-I_SHAPE_TEMPLATE = [['..O..',
+I_SHAPE_TEMPLATE = [['.....',
                      '..O..',
                      '..O..',
                      '..O..',
-                     '.....'],
+                     '..O..'],
                     ['.....',
                      '.....',
                      'OOOO.',
@@ -153,9 +153,21 @@ PIECES = {'S': S_SHAPE_TEMPLATE,
 # step
 STEP = Enum('STEP','ready input move check_erase erase check_down gameover gameclear')
 
+# class
+class myMap:
+    def __init__(self, type, x, y, item):
+        self.type = type
+        self.x = x
+        self.y = y
+        self.item = item
+
+
+
 # variables
 m_GameStep = STEP.input.value
-m_Map = []
+m_Map = [[0 for col in range(BOARD_WIDTH_CNT)] for row in range(BOARD_HEIGHT_CNT)]
+initShape = random.choice(list(PIECES.keys()))
+m_Map2 = [[0 for col in range(BOARD_WIDTH_CNT)] for row in range(BOARD_HEIGHT_CNT)]
 initShape = random.choice(list(PIECES.keys()))
 m_fallingTetris = {'shape': initShape,
                 'rotation': random.randint(0, len(PIECES[initShape]) - 1),

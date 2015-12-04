@@ -5,8 +5,8 @@ from pygame.locals import *
 ## functions
 def initProcess():
     initMap()
-    return        
-
+    return     
+   
 def inputProcess():
     checkForQuit()
     global  fezJump, fezMoveLeft, fezMoveRight, fezFall
@@ -25,53 +25,59 @@ def inputProcess():
         if checkLeftRight(1) == True:
             print("right")
             m_fallingTetris['x'] += 1
-    else:
-        for event in pygame.event.get():
-            if pygame.key.get_pressed()[pygame.K_UP] != 0:
-                print("up")
-                maxRot = len(PIECES[m_fallingTetris['shape']])-1
-                if m_fallingTetris['rotation']+1 > maxRot:
-                    m_fallingTetris['rotation'] = 0
-                else:
-                    m_fallingTetris['rotation'] += 1
-            elif pygame.key.get_pressed()[pygame.K_SPACE] != 0:
-                print("space")
-                fullDown()
-            elif pygame.key.get_pressed()[pygame.K_w] != 0:
+    
+    elif pygame.key.get_pressed()[pygame.K_SPACE] != 0:
+        print("space")
+        fullDown()
+
+    for event in pygame.event.get():
+        if pygame.key.get_pressed()[pygame.K_UP] != 0:
+            print("up")
+            maxRot = len(PIECES[m_fallingTetris['shape']])-1
+            if m_fallingTetris['rotation']+1 > maxRot:
+                m_fallingTetris['rotation'] = 0
+            else:
+                m_fallingTetris['rotation'] += 1
+        # fez move
+        if event.type == KEYDOWN:
+            if event.key == K_w:
                 if fezJump == False and fezFall == False:
                     global c_time
                     c_time = g_time
                     fezJump = True
-
-            # fez move
-            elif event.type == KEYDOWN:
-                if event.key == K_a:
-                    fezMoveRight = False
-                    fezMoveLeft = True
-                    if fez['dir'] != 'left':
-                        fez['dir'] = 'left'
-                        fez['img'] = FEZ_IMG_LEFT
-                if event.key == K_d:
-                    fezMoveLeft = False
-                    fezMoveRight = True
-                    if fez['dir'] != 'right':
-                        fez['dir'] = 'right'
-                        fez['img'] = FEZ_IMG_RIGHT
-            elif event.type == KEYUP:
-                if event.key == K_a:
-                    fezMoveLeft = False
-                if event.key == K_d:
-                    fezMoveRight = False
+            if event.key == K_a:
+                fezMoveRight = False
+                fezMoveLeft = True
+                if fez['dir'] != 'left':
+                    fez['dir'] = 'left'
+                    fez['img'] = FEZ_IMG_LEFT
+            if event.key == K_d:
+                fezMoveLeft = False
+                fezMoveRight = True
+                if fez['dir'] != 'right':
+                    fez['dir'] = 'right'
+                    fez['img'] = FEZ_IMG_RIGHT
+        elif event.type == KEYUP:
+            if event.key == K_a:
+                fezMoveLeft = False
+            if event.key == K_d:
+                fezMoveRight = False
+            if event.key == K_w:
+                fezJump = False
                 
     return
 
 fez_time = time.time()
 tetris_time = time.time()
+tetris_new_gap = 0
 def dataProcess():
     global m_GameStep
     global m_fallingTetris
     global tetris_time, fez_time, f_time
+    
     curTime = time.time()
+
+    moveComponents()
 
     # fez
     if curTime-fez_time >= 0.1:
@@ -80,10 +86,9 @@ def dataProcess():
 
     moveFez()
     jumpFez()
-    if collisionBlockDown(fez['leftLegX'],fez['rightLegX'],fez['botY']) == False:
+    if collisionBlockDown(fez['leftLegX'],fez['rightLegX'],fez['botY']+5) == False:
        fallFez()
 
-    
 
     # tetris
     if curTime-tetris_time >= 0.3:
@@ -107,9 +112,10 @@ def dataProcess():
 
 def renderProcess():
     DISPLAYSURF.fill(BLACK)
-    drawBoard()
     drawMovingTetris()
+    drawBoard()
     drawFez()
+    drawBound()
 
     pygame.display.update()
     FPSCLOCK.tick(FPS)
@@ -130,33 +136,57 @@ def mainLoop():
 # init
 def initMap():
     for i in range(BOARD_HEIGHT_CNT):
-        m_Map.append([BLANK]*BOARD_WIDTH_CNT)
+        for j in range(BOARD_WIDTH_CNT):
+            m_Map[i][j] = myMap(BLANK,0,0,0)
+            m_Map2[i][j] = myMap(BLANK,0,0,0)
+
+    for i in range(BOARD_HEIGHT_CNT):
+        for j in range(BOARD_WIDTH_CNT):
+            m_Map[i][j].x = TETRIS_LEFT_GAP+j*BOXSIZE
+            m_Map[i][j].y = TETRIS_TOP_GAP+i*BOXSIZE
+            m_Map2[i][j].x = TETRIS_LEFT_GAP+j*BOXSIZE + BOARD_WIDTH_CNT*BOXSIZE
+            m_Map2[i][j].y = TETRIS_TOP_GAP+i*BOXSIZE
 
     # 밑바닥 맵 랜덤
     for i in range(BOARD_WIDTH_CNT):
-        m_Map[BOARD_HEIGHT_CNT-1][i] = 2
+        m_Map[BOARD_HEIGHT_CNT-1][i].type = 2
+        m_Map2[BOARD_HEIGHT_CNT-1][i].type = 2
     for i in range(BOARD_WIDTH_CNT):
-        m_Map[BOARD_HEIGHT_CNT-2][i] = 2
+        m_Map[BOARD_HEIGHT_CNT-2][i].type = 2
+        m_Map2[BOARD_HEIGHT_CNT-2][i].type = 2
 
 
     # 밑바닥-2 맵 랜덤
     for i in range(BOARD_WIDTH_CNT):
         ranNum = random.randint(0,5)
         if ranNum == 0:
-            m_Map[BOARD_HEIGHT_CNT-3][i] = BLANK
+            (m_Map[BOARD_HEIGHT_CNT-3][i]).type = BLANK
         elif ranNum == 1:
-            m_Map[BOARD_HEIGHT_CNT-3][i] = 0
+            (m_Map[BOARD_HEIGHT_CNT-3][i]).type = 0
         elif ranNum == 2:
-            m_Map[BOARD_HEIGHT_CNT-3][i] = 1
+            (m_Map[BOARD_HEIGHT_CNT-3][i]).type = 1
         elif ranNum == 3:
-            m_Map[BOARD_HEIGHT_CNT-3][i] = 2
+            (m_Map[BOARD_HEIGHT_CNT-3][i]).type = 2
         elif ranNum == 4:
-            m_Map[BOARD_HEIGHT_CNT-3][i] = 3
+            (m_Map[BOARD_HEIGHT_CNT-3][i]).type = 3
 
-    # 점프 테스트
+    for i in range(BOARD_WIDTH_CNT):
+        ranNum = random.randint(0,5)
+        if ranNum == 0:
+            (m_Map2[BOARD_HEIGHT_CNT-3][i]).type = BLANK
+        elif ranNum == 1:
+            (m_Map2[BOARD_HEIGHT_CNT-3][i]).type = 0
+        elif ranNum == 2:
+            (m_Map2[BOARD_HEIGHT_CNT-3][i]).type = 1
+        elif ranNum == 3:
+            (m_Map2[BOARD_HEIGHT_CNT-3][i]).type = 2
+        elif ranNum == 4:
+            (m_Map2[BOARD_HEIGHT_CNT-3][i]).type = 3
+
     for i in range(BOARD_WIDTH_CNT-1,int(BOARD_WIDTH_CNT/2),-1):
-        m_Map[BOARD_HEIGHT_CNT-8][i] = 3
-
+        m_Map[BOARD_HEIGHT_CNT-8][i].type = 3
+    for i in range(BOARD_WIDTH_CNT-1,int(BOARD_WIDTH_CNT/2),-1):
+        m_Map2[BOARD_HEIGHT_CNT-8][i].type = 3
 # input
 
 def checkDown():
@@ -166,7 +196,7 @@ def checkDown():
                 map_X, map_Y = convertBlockIdxToMapIdx(x,y,m_fallingTetris)
                 if map_Y+1 >= BOARD_HEIGHT_CNT:
                     return False
-                if m_Map[map_Y+1][map_X] != BLANK:
+                if m_Map[map_Y+1][map_X].type != BLANK:
                     return False
     return True
 
@@ -175,7 +205,7 @@ def checkLeftRight(num):
         for y in range(TETRIS_HEIGHT_CNT):
             if PIECES[m_fallingTetris['shape']][m_fallingTetris['rotation']][y][x] != BLANK:
                 map_X, map_Y = convertBlockIdxToMapIdx(x,y,m_fallingTetris)
-                if m_Map[map_Y][map_X+num] != BLANK:
+                if m_Map[map_Y][map_X+num].type != BLANK:
                     return False
                 if map_X+num<0 or map_X+num>=BOARD_WIDTH_CNT-1:
                     return False
@@ -191,13 +221,22 @@ def fullDown():
                         setOnMap()
                         m_GameStep = STEP.check_erase.value
                         return
-                    if m_Map[map_Y+1][map_X] != BLANK:
+                    if m_Map[map_Y+1][map_X].type != BLANK:
                         setOnMap()
                         m_GameStep = STEP.check_erase.value
                         return
         m_fallingTetris['y'] += 1
         
 # data
+def moveComponents():
+    for x in range(BOARD_WIDTH_CNT):
+        for y in range(BOARD_HEIGHT_CNT):
+            m_Map[y][x].x -= SCREEN_SPEED
+    fez['topX'] -= SCREEN_SPEED
+    fez['rightLegX'] -= SCREEN_SPEED
+    fez['leftLegX'] -= SCREEN_SPEED
+
+
 def newTetris():
     shape = random.choice(list(PIECES.keys()))
     newBox = {'shape': shape,
@@ -214,7 +253,7 @@ def isBlocked():
                 map_X, map_Y = convertBlockIdxToMapIdx(x,y,m_fallingTetris)
                 if map_Y+1 >= BOARD_HEIGHT_CNT-1:
                     return True
-                if m_Map[map_Y+1][map_X] != BLANK:
+                if m_Map[map_Y+1][map_X].type != BLANK:
                     return True
     return False
 
@@ -223,7 +262,7 @@ def setOnMap():
         for y in range(TETRIS_HEIGHT_CNT):
             if PIECES[m_fallingTetris['shape']][m_fallingTetris['rotation']][y][x] != BLANK:
                 map_X, map_Y = convertBlockIdxToMapIdx(x,y,m_fallingTetris)
-                m_Map[map_Y][map_X] = m_fallingTetris['color']
+                m_Map[map_Y][map_X].type = m_fallingTetris['color']
 
 def convertBlockIdxToMapIdx(x, y, tetris):
     # 테트리스 블럭 인덱스를 맵의 인덱스로 변환
@@ -238,18 +277,18 @@ def convertMapIdxToPixel(mapx, mapy):
     y = TETRIS_TOP_GAP+mapy*BOXSIZE
     return x, y
 
+def convertBlockIdxToPixel():
+    i=0
 def convertPixelToMapIdx(x,y):
     # 화면의 좌표를 맵의 인덱스로 변환
     mapIdxX=0
     mapIdxY=0
-    for i in range(BOARD_WIDTH_CNT):
-        mapx = TETRIS_LEFT_GAP+i*BOXSIZE
-        if x >= mapx and x < mapx+BOXSIZE:
-            for j in range(BOARD_HEIGHT_CNT):
-                mapy = TETRIS_TOP_GAP+j*BOXSIZE
-                if y >= mapy and y < mapy+BOXSIZE:
-                    mapIdxX = i
-                    mapIdxY = j
+    for i in range(BOARD_HEIGHT_CNT):
+        for j in range(BOARD_WIDTH_CNT):
+            if x >= m_Map[i][j].x and x < m_Map[i][j].x+BOXSIZE:
+                if y >= m_Map[i][j].y and y < m_Map[i][j].y+BOXSIZE:
+                    mapIdxX = j
+                    mapIdxY = i
                     break
     return mapIdxX, mapIdxY
 
@@ -272,9 +311,9 @@ def collisionUp():
     fezHeadRect = pygame.Rect(fez['topX']+10,fez['topY'],fez['width']-20,fez['width']-10)
     for i in range(BOARD_HEIGHT_CNT-1,0,-1):
         for j in range(BOARD_WIDTH_CNT):
-            if m_Map[i][j] != BLANK:
-                x,y = convertMapIdxToPixel(j,i)
-                blockRect = pygame.Rect(x,y,BOXSIZE,BOXSIZE)
+            if m_Map[i][j].type != BLANK:
+                # x,y = convertMapIdxToPixel(j,i)
+                blockRect = pygame.Rect(m_Map[i][j].x,m_Map[i][j].y,BOXSIZE,BOXSIZE)
                 if fezHeadRect.colliderect(blockRect):
                     return j,i
     return -1,-1
@@ -286,19 +325,23 @@ def collisionBlockDown(leftx, rightx, y):
     
     legRect = pygame.Rect(leftx,y-16,10,16)           # fez 하체 직사각형
          
-    leftMapX, leftMapY = convertMapIdxToPixel(charMapX_l,charMapY)
+    # leftMapX, leftMapY = convertMapIdxToPixel(charMapX_l,charMapY)
+    leftMapX = m_Map[charMapY][charMapX_l].x
+    leftMapY = m_Map[charMapY][charMapX_l].y
     leftMapRect = pygame.Rect(leftMapX-3,leftMapY-3,BOXSIZE+6,BOXSIZE+6)
-    rightMapX, rightMapY = convertMapIdxToPixel(charMapX_r,charMapY)
+    # rightMapX, rightMapY = convertMapIdxToPixel(charMapX_r,charMapY)
+    rightMapX = m_Map[charMapY][charMapX_r].x
+    rightMapY = m_Map[charMapY][charMapX_r].y
     rightMapRect = pygame.Rect(rightMapX-3,rightMapY-3,BOXSIZE+6,BOXSIZE+6)
 
     # 바닥에 닿은 경우
-    if m_Map[charMapY][charMapX_l] != BLANK and legRect.colliderect(leftMapRect):
+    if m_Map[charMapY][charMapX_l].type != BLANK and legRect.colliderect(leftMapRect):
         fez['botY'] = leftMapY
         fez['topY'] = fez['botY']-fez['height']
         fez['jump'] = 9999
         fezFall = False
         return True
-    if m_Map[charMapY][charMapX_r] != BLANK and legRect.colliderect(rightMapRect):
+    if m_Map[charMapY][charMapX_r].type != BLANK and legRect.colliderect(rightMapRect):
         fez['botY'] = rightMapY
         fez['topY'] = fez['botY']-fez['height']
         fez['jump'] = 9999
@@ -317,7 +360,7 @@ def moveFez():
         fez_topX, fez_topY = convertPixelToMapIdx(fez['topX']-fez['speed'], fez['topY'])
         fez_faceX, fez_faceY = convertPixelToMapIdx(fez['topX']-fez['speed'], fez['topY']+FEZ_FACE_HEIGHT)
         fez_legX, fez_legY = convertPixelToMapIdx(fez['leftLegX']-5-fez['speed'], fez['botY']-5)
-        if m_Map[fez_topY][fez_topX] == BLANK and m_Map[fez_faceY][fez_faceX] == BLANK and m_Map[fez_legY][fez_legX] == BLANK:
+        if m_Map[fez_topY][fez_topX].type == BLANK and m_Map[fez_faceY][fez_faceX].type == BLANK and m_Map[fez_legY][fez_legX].type == BLANK:
             fez['topX'] -= fez['speed']
             fez['leftLegX'] = fez['topX'] + FEZ_LEG_RIGHT_GAP
             fez['rightLegX'] = fez['topX'] + (FEZ_WIDTH_SIZE-FEZ_LEG_LEFT_GAP)
@@ -327,7 +370,7 @@ def moveFez():
         fez_topX, fez_topY = convertPixelToMapIdx(fez['topX']+fez['speed']+fez['width']/2, fez['topY'])
         fez_faceX, fez_faceY = convertPixelToMapIdx(fez['topX']+fez['speed']+fez['width']/2, fez['topY']+FEZ_FACE_HEIGHT)
         fez_legX, fez_legY = convertPixelToMapIdx(fez['rightLegX']-5+fez['speed'], fez['botY']-5)
-        if m_Map[fez_topY][fez_topX] == BLANK and m_Map[fez_faceY][fez_faceX] == BLANK and m_Map[fez_legY][fez_legX] == BLANK:
+        if m_Map[fez_topY][fez_topX].type == BLANK and m_Map[fez_faceY][fez_faceX].type == BLANK and m_Map[fez_legY][fez_legX].type == BLANK:
             fez['topX'] += fez['speed']
             fez['leftLegX'] = fez['topX'] + FEZ_LEG_LEFT_GAP
             fez['rightLegX'] = fez['topX'] + (FEZ_WIDTH_SIZE-FEZ_LEG_RIGHT_GAP)
@@ -369,18 +412,23 @@ def jumpFez():
             f_time = time.time()
 
 
-
 # render
 def drawBoard():
-    pygame.draw.rect(DISPLAYSURF, BORDERCOLOR, (TETRIS_LEFT_GAP, TETRIS_TOP_GAP, (BOARD_WIDTH_CNT * BOXSIZE) + 8, (BOARD_HEIGHT_CNT * BOXSIZE) + 8), 5)
     for y in range(BOARD_HEIGHT_CNT):
         for x in range(BOARD_WIDTH_CNT):
-            drawBox(y, x, m_Map[y][x])
+            drawBox(m_Map[y][x].y, m_Map[y][x].x, m_Map[y][x].type)
+    pygame.draw.rect(DISPLAYSURF, BORDERCOLOR, (TETRIS_LEFT_GAP, TETRIS_TOP_GAP, (BOARD_WIDTH_CNT * BOXSIZE) + 8, (BOARD_HEIGHT_CNT * BOXSIZE) + 8), 5)
+
+def drawBound():
+    pygame.draw.rect(DISPLAYSURF, BLACK, (0,TETRIS_TOP_GAP-5,TETRIS_LEFT_GAP-2,BOARD_HEIGHT_CNT*BOXSIZE+30))
+    # pygame.draw.rect(DISPLAYSURF, BLACK, (TETRIS_LEFT_GAP+BOARD_WIDTH_CNT*BOXSIZE+5,TETRIS_TOP_GAP-5,0,BOARD_HEIGHT_CNT*BOXSIZE+30))
+
 def drawBox(y,x,color):
     if color==BLANK:
         return
     blockImg = pygame.image.load(BLOCKTYPE[color])
-    blockRect = pygame.Rect((TETRIS_LEFT_GAP+x*BOXSIZE+6,TETRIS_TOP_GAP+y*BOXSIZE+5,BOXSIZE-1,BOXSIZE-1))
+    # blockRect = pygame.Rect((TETRIS_LEFT_GAP+x*BOXSIZE+6,TETRIS_TOP_GAP+y*BOXSIZE+5,BOXSIZE-1,BOXSIZE-1))
+    blockRect = pygame.Rect((x,y,BOXSIZE-1,BOXSIZE-1))
     DISPLAYSURF.blit(blockImg,blockRect)
     # pygame.draw.rect(DISPLAYSURF,COLORS[color],(TETRIS_LEFT_GAP+x*BOXSIZE+6,TETRIS_TOP_GAP+y*BOXSIZE+5,BOXSIZE-1,BOXSIZE-1))
 
@@ -388,7 +436,10 @@ def drawMovingTetris():
     for x in range(TETRIS_WIDTH_CNT):
         for y in range(TETRIS_HEIGHT_CNT):
             if PIECES[m_fallingTetris['shape']][m_fallingTetris['rotation']][y][x] != BLANK:
-                map_X, map_Y = convertBlockIdxToMapIdx(x,y,m_fallingTetris)
+                map_Xi, map_Yi = convertBlockIdxToMapIdx(x,y,m_fallingTetris)
+                #map_X, map_Y = convertMapIdxToPixel(map_X,map_Y)
+                map_X = m_Map[map_Yi][map_Xi].x
+                map_Y = m_Map[map_Yi][map_Xi].y
                 drawBox(map_Y,map_X,m_fallingTetris['color'])
 
 def drawFez():
