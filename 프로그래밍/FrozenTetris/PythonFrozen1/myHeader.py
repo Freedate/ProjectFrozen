@@ -7,6 +7,9 @@ from pygame.locals import *
 FPS = 25
 WINDOWWIDTH = 800
 WINDOWHEIGHT = 540
+SCREEN_SPEED = 10
+
+## tetris
 BOXSIZE = 16
 BOARD_WIDTH_CNT = 48
 BOARD_HEIGHT_CNT = 28

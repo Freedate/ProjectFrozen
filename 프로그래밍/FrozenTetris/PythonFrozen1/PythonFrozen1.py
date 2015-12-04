@@ -135,21 +135,27 @@ def initMap():
     # 밑바닥 맵 랜덤
     for i in range(BOARD_WIDTH_CNT):
         m_Map[BOARD_HEIGHT_CNT-1][i] = 2
+    for i in range(BOARD_WIDTH_CNT):
+        m_Map[BOARD_HEIGHT_CNT-2][i] = 2
 
 
-    # 밑바닥-1 맵 랜덤
+    # 밑바닥-2 맵 랜덤
     for i in range(BOARD_WIDTH_CNT):
         ranNum = random.randint(0,5)
         if ranNum == 0:
-            m_Map[BOARD_HEIGHT_CNT-2][i] = BLANK
+            m_Map[BOARD_HEIGHT_CNT-3][i] = BLANK
         elif ranNum == 1:
-            m_Map[BOARD_HEIGHT_CNT-2][i] = 0
+            m_Map[BOARD_HEIGHT_CNT-3][i] = 0
         elif ranNum == 2:
-            m_Map[BOARD_HEIGHT_CNT-2][i] = 1
+            m_Map[BOARD_HEIGHT_CNT-3][i] = 1
         elif ranNum == 3:
-            m_Map[BOARD_HEIGHT_CNT-2][i] = 2
+            m_Map[BOARD_HEIGHT_CNT-3][i] = 2
         elif ranNum == 4:
-            m_Map[BOARD_HEIGHT_CNT-2][i] = 3
+            m_Map[BOARD_HEIGHT_CNT-3][i] = 3
+
+    # 점프 테스트
+    for i in range(BOARD_WIDTH_CNT-1,int(BOARD_WIDTH_CNT/2),-1):
+        m_Map[BOARD_HEIGHT_CNT-8][i] = 3
 
 # input
 
@@ -206,7 +212,7 @@ def isBlocked():
         for y in range(TETRIS_HEIGHT_CNT):
             if PIECES[m_fallingTetris['shape']][m_fallingTetris['rotation']][y][x] != BLANK:
                 map_X, map_Y = convertBlockIdxToMapIdx(x,y,m_fallingTetris)
-                if map_Y+1 >= BOARD_HEIGHT_CNT:
+                if map_Y+1 >= BOARD_HEIGHT_CNT-1:
                     return True
                 if m_Map[map_Y+1][map_X] != BLANK:
                     return True
@@ -261,6 +267,17 @@ def convertPixelToMapIdx(x,y):
 #        f_time = time.time()
 #        fezFall = True
 #    return True
+
+def collisionUp():
+    fezHeadRect = pygame.Rect(fez['topX']+10,fez['topY'],fez['width']-20,fez['width']-10)
+    for i in range(BOARD_HEIGHT_CNT-1,0,-1):
+        for j in range(BOARD_WIDTH_CNT):
+            if m_Map[i][j] != BLANK:
+                x,y = convertMapIdxToPixel(j,i)
+                blockRect = pygame.Rect(x,y,BOXSIZE,BOXSIZE)
+                if fezHeadRect.colliderect(blockRect):
+                    return j,i
+    return -1,-1
 
 def collisionBlockDown(leftx, rightx, y):
     global f_time, fezFall
@@ -330,29 +347,27 @@ def fallFez():
         fez['botY'] = fez['topY'] + fez['height']
 
 def jumpFez():
-    global fezJump, g_time, c_time
+    global fezJump, g_time, c_time, f_time
     if fezJump:
-        vel = g_time - c_time
-        v = 25 - vel*100
-        fez['jump'] = v     # v가 +면 올라가는 중
-        fez['topY'] = fez['topY'] - v
-        fez['botY'] = fez['topY'] + fez['height']
+        mapX, mapY = collisionUp()
+        if mapX == -1:
+            # 부딪친 블럭이 없을 때
+            vel = g_time - c_time
+            v = 25 - vel*100
+            fez['jump'] = v     # v가 +면 올라가는 중
+            fez['topY'] = fez['topY'] - v
+            fez['botY'] = fez['topY'] + fez['height']
 
-        if v<=0:
-            # 최고점
+            if v<=0:
+                # 최고점
+                fezJump = False
+                fezFall = True
+        else:
+            # 부딪친 블럭이 있을 때
             fezJump = False
             fezFall = True
-       
-def collisionUp(x,y):
-    fezHeadRect = pygame.Rect(fez['topX'],fez['topY'],fez['width'],fez['width'])
-    for i in range(BOARD_HEIGHT_CNT-1,0,-1):
-        for j in range(BOARD_WIDTH_CNT):
-            if m_Map[i][j] != BLANK:
-                x,y = convertMapIdxToPixel(j,i)
-                blockRect = pygame.Rect(x,y,BOXSIZE,BOXSIZE)
-                if fezHeadRect.colliderect(blockRect):
-                    return True
-    return False
+            f_time = time.time()
+
 
 
 # render
