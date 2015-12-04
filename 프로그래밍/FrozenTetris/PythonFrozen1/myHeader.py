@@ -8,16 +8,16 @@ FPS = 25
 WINDOWWIDTH = 800
 WINDOWHEIGHT = 540
 SCREEN_SPEED = 1
-<<<<<<< HEAD
 MOVEBLOCK = 0
 MOVECNT = 0
-=======
->>>>>>> 8559a3d81db13f2db1d85921dadfbd273409e6b1
 
 ## tetris
 BOXSIZE = 16
 BOARD_WIDTH_CNT = 48
 BOARD_HEIGHT_CNT = 28
+MAP_BOARD_GAP = 4
+MAP_WIDTH_CNT = BOARD_WIDTH_CNT+MAP_BOARD_GAP
+MAP_HEIGHT_CNT = BOARD_HEIGHT_CNT
 TETRIS_WIDTH_CNT = 5
 TETRIS_HEIGHT_CNT = 5
 TETRIS_LEFT_GAP = 20
@@ -170,9 +170,7 @@ class myMap:
 
 # variables
 m_GameStep = STEP.input.value
-m_Map = [[0 for col in range(BOARD_WIDTH_CNT)] for row in range(BOARD_HEIGHT_CNT)]
-initShape = random.choice(list(PIECES.keys()))
-m_Map2 = [[0 for col in range(BOARD_WIDTH_CNT)] for row in range(BOARD_HEIGHT_CNT)]
+m_Map = [[0 for col in range(MAP_WIDTH_CNT)] for row in range(MAP_HEIGHT_CNT)]
 initShape = random.choice(list(PIECES.keys()))
 m_fallingTetris = {'shape': initShape,
                 'rotation': random.randint(0, len(PIECES[initShape]) - 1),

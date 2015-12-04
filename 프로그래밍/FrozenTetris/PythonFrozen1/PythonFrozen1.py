@@ -65,11 +65,6 @@ def inputProcess():
                 fezMoveRight = False
             if event.key == K_w:
                 fezJump = False
-<<<<<<< HEAD
-    
-=======
-                
->>>>>>> 8559a3d81db13f2db1d85921dadfbd273409e6b1
     return
 
 fez_time = time.time()
@@ -140,58 +135,39 @@ def mainLoop():
 
 # init
 def initMap():
-    for i in range(BOARD_HEIGHT_CNT):
-        for j in range(BOARD_WIDTH_CNT):
+    for i in range(MAP_HEIGHT_CNT):
+        for j in range(MAP_WIDTH_CNT):
             m_Map[i][j] = myMap(BLANK,0,0,0)
-            m_Map2[i][j] = myMap(BLANK,0,0,0)
 
-    for i in range(BOARD_HEIGHT_CNT):
-        for j in range(BOARD_WIDTH_CNT):
+    for i in range(MAP_HEIGHT_CNT):
+        for j in range(MAP_WIDTH_CNT):
             m_Map[i][j].x = TETRIS_LEFT_GAP+j*BOXSIZE
             m_Map[i][j].y = TETRIS_TOP_GAP+i*BOXSIZE
-            m_Map2[i][j].x = TETRIS_LEFT_GAP+j*BOXSIZE + BOARD_WIDTH_CNT*BOXSIZE
-            m_Map2[i][j].y = TETRIS_TOP_GAP+i*BOXSIZE
 
     # 밑바닥 맵 랜덤
-    for i in range(BOARD_WIDTH_CNT):
-        m_Map[BOARD_HEIGHT_CNT-1][i].type = 2
-        m_Map2[BOARD_HEIGHT_CNT-1][i].type = 2
-    for i in range(BOARD_WIDTH_CNT):
-        m_Map[BOARD_HEIGHT_CNT-2][i].type = 2
-        m_Map2[BOARD_HEIGHT_CNT-2][i].type = 2
+    for i in range(MAP_WIDTH_CNT):
+        m_Map[MAP_HEIGHT_CNT-1][i].type = 2
+    for i in range(MAP_WIDTH_CNT):
+        m_Map[MAP_HEIGHT_CNT-2][i].type = 2
 
 
     # 밑바닥-2 맵 랜덤
-    for i in range(BOARD_WIDTH_CNT):
+    for i in range(MAP_WIDTH_CNT):
         ranNum = random.randint(0,5)
         if ranNum == 0:
-            (m_Map[BOARD_HEIGHT_CNT-3][i]).type = BLANK
+            (m_Map[MAP_HEIGHT_CNT-3][i]).type = BLANK
         elif ranNum == 1:
-            (m_Map[BOARD_HEIGHT_CNT-3][i]).type = 0
+            (m_Map[MAP_HEIGHT_CNT-3][i]).type = 0
         elif ranNum == 2:
-            (m_Map[BOARD_HEIGHT_CNT-3][i]).type = 1
+            (m_Map[MAP_HEIGHT_CNT-3][i]).type = 1
         elif ranNum == 3:
-            (m_Map[BOARD_HEIGHT_CNT-3][i]).type = 2
+            (m_Map[MAP_HEIGHT_CNT-3][i]).type = 2
         elif ranNum == 4:
-            (m_Map[BOARD_HEIGHT_CNT-3][i]).type = 3
+            (m_Map[MAP_HEIGHT_CNT-3][i]).type = 3
 
-    for i in range(BOARD_WIDTH_CNT):
-        ranNum = random.randint(0,5)
-        if ranNum == 0:
-            (m_Map2[BOARD_HEIGHT_CNT-3][i]).type = BLANK
-        elif ranNum == 1:
-            (m_Map2[BOARD_HEIGHT_CNT-3][i]).type = 0
-        elif ranNum == 2:
-            (m_Map2[BOARD_HEIGHT_CNT-3][i]).type = 1
-        elif ranNum == 3:
-            (m_Map2[BOARD_HEIGHT_CNT-3][i]).type = 2
-        elif ranNum == 4:
-            (m_Map2[BOARD_HEIGHT_CNT-3][i]).type = 3
 
-    for i in range(BOARD_WIDTH_CNT-1,int(BOARD_WIDTH_CNT/2),-1):
-        m_Map[BOARD_HEIGHT_CNT-8][i].type = 3
-    for i in range(BOARD_WIDTH_CNT-1,int(BOARD_WIDTH_CNT/2),-1):
-        m_Map2[BOARD_HEIGHT_CNT-8][i].type = 3
+    for i in range(MAP_WIDTH_CNT-1,int(MAP_WIDTH_CNT/2),-1):
+        m_Map[MAP_HEIGHT_CNT-8][i].type = 3
 # input
 
 def checkDown():
@@ -233,21 +209,38 @@ def fullDown():
         m_fallingTetris['y'] += 1
         
 # data
+def resetMap():
+    # 사라진 맵 pop
+    for i in range(MAP_HEIGHT_CNT):
+        for j in range(MAP_BOARD_GAP):
+            m_Map[i].pop(0)
+    
+    # new 맵 extend
+    for i in range(MAP_HEIGHT_CNT):
+        m_Map[i].extend([0,0,0,0])
+    for i in range(MAP_WIDTH_CNT-MAP_BOARD_GAP,MAP_WIDTH_CNT,1):
+        for j in range(MAP_HEIGHT_CNT):
+            if j >= MAP_HEIGHT_CNT-2:
+                m_Map[j][i] = myMap(2,TETRIS_LEFT_GAP+i*BOXSIZE,TETRIS_TOP_GAP+j*BOXSIZE,0)
+            else:
+                m_Map[j][i] = myMap(BLANK,TETRIS_LEFT_GAP+i*BOXSIZE,TETRIS_TOP_GAP+j*BOXSIZE,0)
+
 def moveComponents():
-    for x in range(BOARD_WIDTH_CNT):
-        for y in range(BOARD_HEIGHT_CNT):
+    for x in range(MAP_WIDTH_CNT):
+        for y in range(MAP_HEIGHT_CNT):
             m_Map[y][x].x -= SCREEN_SPEED
     fez['topX'] -= SCREEN_SPEED
     fez['rightLegX'] -= SCREEN_SPEED
     fez['leftLegX'] -= SCREEN_SPEED
-<<<<<<< HEAD
     global MOVEBLOCK, MOVECNT
     MOVEBLOCK += SCREEN_SPEED
     if MOVEBLOCK % BOXSIZE == 0 :
         MOVECNT += 1
-
-=======
->>>>>>> 8559a3d81db13f2db1d85921dadfbd273409e6b1
+        if MOVECNT >= 4:
+            resetMap()
+            if m_GameStep == STEP.input.value:
+                m_fallingTetris['x'] -= MAP_BOARD_GAP
+            MOVECNT = 0
 
 
 def newTetris():
@@ -428,22 +421,15 @@ def jumpFez():
 
 # render
 def drawBoard():
-    for y in range(BOARD_HEIGHT_CNT):
-        for x in range(BOARD_WIDTH_CNT):
+    for y in range(MAP_HEIGHT_CNT):
+        for x in range(MAP_WIDTH_CNT):
             drawBox(m_Map[y][x].y, m_Map[y][x].x, m_Map[y][x].type)
-<<<<<<< HEAD
-=======
-            drawBox(m_Map2[y][x].y, m_Map2[y][x].x, m_Map2[y][x].type)
->>>>>>> 8559a3d81db13f2db1d85921dadfbd273409e6b1
     pygame.draw.rect(DISPLAYSURF, BORDERCOLOR, (TETRIS_LEFT_GAP, TETRIS_TOP_GAP, (BOARD_WIDTH_CNT * BOXSIZE) + 8, (BOARD_HEIGHT_CNT * BOXSIZE) + 8), 5)
 
 def drawBound():
     pygame.draw.rect(DISPLAYSURF, BLACK, (0,TETRIS_TOP_GAP-5,TETRIS_LEFT_GAP-2,BOARD_HEIGHT_CNT*BOXSIZE+30))
-<<<<<<< HEAD
     # pygame.draw.rect(DISPLAYSURF, BLACK, (TETRIS_LEFT_GAP+BOARD_WIDTH_CNT*BOXSIZE+5,TETRIS_TOP_GAP-5,0,BOARD_HEIGHT_CNT*BOXSIZE+30))
-=======
     pygame.draw.rect(DISPLAYSURF, BLACK, (TETRIS_LEFT_GAP+BOARD_WIDTH_CNT*BOXSIZE+5,TETRIS_TOP_GAP-5,1,BOARD_HEIGHT_CNT*BOXSIZE+30))
->>>>>>> 8559a3d81db13f2db1d85921dadfbd273409e6b1
 
 def drawBox(y,x,color):
     if color==BLANK:
@@ -571,7 +557,6 @@ def main():
         mainLoop()
 
     releaseProcess()
-
 
 
 ## function calls
