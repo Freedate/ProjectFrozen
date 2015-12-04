@@ -268,6 +268,7 @@ def collisionBlockDown(leftx, rightx, y):
     if fez_legY != 0 and fez_legY<BOARD_HEIGHT_CNT:
         if m_Map[fez_legY][fez_leftX] == BLANK and m_Map[fez_legY][fez_rightX] == BLANK:
             return False
+    return True
 #def collisionBlockDown(leftx, rightx, y):
 #    charMapX_l, charMapY = convertPixelToMapIdx(leftx,y+fez['speed'])
 #    charMapX_r, charMapY = convertPixelToMapIdx(rightx,y+fez['speed'])
@@ -377,12 +378,17 @@ def jumpFez():
         fez['topY'] = fez['topY'] - v
         fez['botY'] = fez['topY'] + fez['height']
 
-        if fez['topY'] >= FEZ_START_Y:      # 조건문 추후 '바닥과 충돌할 경우'로 수정
-            fez['topY'] = FEZ_START_Y
-            fez['botY'] = fez['topY'] + fez['height']
+        if collisionBlockDown(fez['leftLegX'],fez['rightLegX'],fez['botY']) == True:
             fez['jump'] = 9999
             fezJump = False
 
+        #if fez['topY'] >= 10:      # 조건문 추후 '바닥과 충돌할 경우'로 수정
+        #if v <= -40:      # 조건문 추후 '바닥과 충돌할 경우'로 수정
+        #    fez['topY'] = 10
+        #    fez['botY'] = fez['topY'] + fez['height']
+        #    fez['jump'] = 9999
+        #    fezJump = False
+def 
 def fallFez():
     global g_time, c_time
     vel = g_time - c_time

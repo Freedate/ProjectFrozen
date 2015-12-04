@@ -16,7 +16,6 @@ TETRIS_LEFT_GAP = 20
 TETRIS_TOP_GAP = 10
 BLANK = '.'
 
-
 # color
 WHITE       = (255, 255, 255)
 GRAY        = (185, 185, 185)
