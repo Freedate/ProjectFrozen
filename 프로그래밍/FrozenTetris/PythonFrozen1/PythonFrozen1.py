@@ -1,6 +1,33 @@
 ﻿from myHeader import *
 import pygame, sys
 from pygame.locals import *
+from PodSixNet.Connection import ConnectionListener, connection
+from time import sleep
+
+class NetworkListener(ConnectionListener):
+    def __init__(self):
+        #address = input("Address of Server: ")
+        try:
+            #if not address:
+            #    host, port="localhost", 8000
+            #else:
+            #    host,port=address.split(":")
+            host, port = "localhost", 8000
+            self.Connect((host, port))
+            print("Chat client started")
+        except:
+            error = sys.exc_info()[0]
+            print(error)
+            exit()
+    def Network_connected(self, data):
+        print("You are now connected to the server")
+    def Network_error(self, data):
+        print('error:', data['error'][1])
+        connection.Close()
+    def Network_disconnected(self, data):
+        print('Server disconnected')
+        exit() 
+
 
 ## functions
 def initProcess():
@@ -14,26 +41,21 @@ def inputProcess():
     # block move
     if pygame.key.get_pressed()[pygame.K_DOWN] != 0:
         if checkDown() == True:
-            print("down")
             m_fallingTetris['y'] += 1
 
     elif pygame.key.get_pressed()[pygame.K_LEFT] != 0:
         if checkLeftRight(-1) == True:
-            print("left")
             m_fallingTetris['x'] -= 1
 
     elif pygame.key.get_pressed()[pygame.K_RIGHT] != 0:
         if checkLeftRight(1) == True:
-            print("right")
             m_fallingTetris['x'] += 1
     
     elif pygame.key.get_pressed()[pygame.K_SPACE] != 0:
-        print("space")
         fullDown()
 
     for event in pygame.event.get():
         if pygame.key.get_pressed()[pygame.K_UP] != 0:
-            print("up")
             maxRot = len(PIECES[m_fallingTetris['shape']])-1
             if m_fallingTetris['rotation']+1 > maxRot:
                 m_fallingTetris['rotation'] = 0
@@ -46,18 +68,21 @@ def inputProcess():
                     global c_time
                     c_time = g_time
                     fezJump = True
+                connection.Send({"action":"fezPos", "x":fez['topX'], "y":fez['topY']})
             if event.key == K_a:
                 fezMoveRight = False
                 fezMoveLeft = True
                 if fez['dir'] != 'left':
                     fez['dir'] = 'left'
                     fez['img'] = FEZ_IMG_LEFT
+                connection.Send({"action":"fezPos", "x":fez['topX'], "y":fez['topY']})
             if event.key == K_d:
                 fezMoveLeft = False
                 fezMoveRight = True
                 if fez['dir'] != 'right':
                     fez['dir'] = 'right'
                     fez['img'] = FEZ_IMG_RIGHT
+                connection.Send({"action":"fezPos", "x":fez['topX'], "y":fez['topY']})
         elif event.type == KEYUP:
             if event.key == K_a:
                 fezMoveLeft = False
@@ -390,7 +415,7 @@ def fallFez():
             fez['jump'] = 9999
         vel = g_time - f_time
         v = -vel*20
-        print(v)
+        #print(v)
         
         fez['jump'] = v
         fez['topY'] = fez['topY'] - v
@@ -553,7 +578,11 @@ def main():
 
     # start game
     initProcess()
+    network_listener = NetworkListener()
+
     while True:
+        connection.Pump()
+        network_listener.Pump()
         mainLoop()
 
     releaseProcess()

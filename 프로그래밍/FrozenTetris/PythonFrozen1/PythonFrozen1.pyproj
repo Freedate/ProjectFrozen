@@ -24,6 +24,9 @@
   <ItemGroup>
     <Compile Include="myHeader.py" />
     <Compile Include="PythonFrozen1.py" />
+    <Compile Include="server.py">
+      <SubType>Code</SubType>
+    </Compile>
   </ItemGroup>
   <PropertyGroup>
     <VisualStudioVersion Condition="'$(VisualStudioVersion)' == ''">10.0</VisualStudioVersion>
