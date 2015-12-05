@@ -15,6 +15,7 @@ class NetworkListener(ConnectionListener):
             
             # 강제로 로컬:8000으로 접속
             host, port = "localhost", 8000
+            # host, port = "121.161.170.114", 8000
 
             self.Connect((host, port))
             print("Chat client started")
@@ -34,7 +35,7 @@ class NetworkListener(ConnectionListener):
 
 ## functions
 def initProcess():
-    initMap()
+    initMap("map/testmap.txt")
     return     
    
 def inputProcess():
@@ -111,12 +112,17 @@ def dataProcess():
     if curTime-fez_time >= 0.1:
         fez_time = time.time()
         imgSprite()
+        enemyImage()
 
     moveFez()
     jumpFez()
     if collisionBlockDown(fez['leftLegX'],fez['rightLegX'],fez['botY']+5) == False:
        fallFez()
 
+    moveEnemy()
+    fallEnemy()
+
+    checkEnemyFez()
 
     # tetris
     if curTime-tetris_time >= 0.3:
@@ -143,6 +149,7 @@ def renderProcess():
     drawMovingTetris()
     drawBoard()
     drawFez()
+    drawEnemy()
     drawBound()
 
     pygame.display.update()
@@ -162,40 +169,43 @@ def mainLoop():
     renderProcess()
 
 # init
-def initMap():
+def initMap(txt):
+    fp = open(txt,'r')
     for i in range(MAP_HEIGHT_CNT):
         for j in range(MAP_WIDTH_CNT):
             m_Map[i][j] = myMap(BLANK,0,0,0)
 
     for i in range(MAP_HEIGHT_CNT):
+        line = fp.readline()
         for j in range(MAP_WIDTH_CNT):
             m_Map[i][j].x = TETRIS_LEFT_GAP+j*BOXSIZE
             m_Map[i][j].y = TETRIS_TOP_GAP+i*BOXSIZE
+            if line[j] == '*':
+                print(line[j])
+                initEnemy(j,i)
+                m_Map[i][j].type = BLANK
+            elif line[j] != BLANK and line[j] != '\n':
+                m_Map[i][j].type = int(line[j])
+            elif line[j] != '\n':
+                m_Map[i][j].type = line[j]
 
-    # 밑바닥 맵 랜덤
-    for i in range(MAP_WIDTH_CNT):
-        m_Map[MAP_HEIGHT_CNT-1][i].type = 2
-    for i in range(MAP_WIDTH_CNT):
-        m_Map[MAP_HEIGHT_CNT-2][i].type = 2
+    #for i in range(MAP_HEIGHT_CNT):
+    #    for j in range(MAP_WIDTH_CNT):
+    #        m_Map[i][j].x = TETRIS_LEFT_GAP+j*BOXSIZE
+    #        m_Map[i][j].y = TETRIS_TOP_GAP+i*BOXSIZE
+    #        if i>=MAP_HEIGHT_CNT-3:
+    #            m_Map[i][j].type = 4
 
+    #initEnemy(BOARD_WIDTH_CNT-10,BOARD_HEIGHT_CNT-8)   
+    #initEnemy(BOARD_WIDTH_CNT-5,BOARD_HEIGHT_CNT-4)   
 
-    # 밑바닥-2 맵 랜덤
-    for i in range(MAP_WIDTH_CNT):
-        ranNum = random.randint(0,5)
-        if ranNum == 0:
-            (m_Map[MAP_HEIGHT_CNT-3][i]).type = BLANK
-        elif ranNum == 1:
-            (m_Map[MAP_HEIGHT_CNT-3][i]).type = 0
-        elif ranNum == 2:
-            (m_Map[MAP_HEIGHT_CNT-3][i]).type = 1
-        elif ranNum == 3:
-            (m_Map[MAP_HEIGHT_CNT-3][i]).type = 2
-        elif ranNum == 4:
-            (m_Map[MAP_HEIGHT_CNT-3][i]).type = 3
+    fp.close()
 
+def initEnemy(x,y):
+    mapX = TETRIS_LEFT_GAP+x*BOXSIZE
+    mapY = TETRIS_TOP_GAP+y*BOXSIZE
+    m_Enemy.append(myEnemy(mapX,mapY,5,'left',random.randint(0,3)))
 
-    for i in range(MAP_WIDTH_CNT-1,int(MAP_WIDTH_CNT/2),-1):
-        m_Map[MAP_HEIGHT_CNT-8][i].type = 3
 # input
 
 def checkDown():
@@ -260,6 +270,10 @@ def moveComponents():
     fez['topX'] -= SCREEN_SPEED
     fez['rightLegX'] -= SCREEN_SPEED
     fez['leftLegX'] -= SCREEN_SPEED
+
+    for i in range(len(m_Enemy)):
+        m_Enemy[i].x -= SCREEN_SPEED
+
     global MOVEBLOCK, MOVECNT
     MOVEBLOCK += SCREEN_SPEED
     if MOVEBLOCK % BOXSIZE == 0 :
@@ -351,7 +365,9 @@ def collisionUp():
                 blockRect = pygame.Rect(m_Map[i][j].x,m_Map[i][j].y,BOXSIZE,BOXSIZE)
                 if fezHeadRect.colliderect(blockRect):
                     return j,i
-    return -1,-1
+    charMapX, charMapY = convertPixelToMapIdx(fez['topX']+10,fez['topY']-5)
+    x,y = checkFallingTetrisUp(charMapX,charMapY)
+    return x,y
 
 def collisionBlockDown(leftx, rightx, y):
     global f_time, fezFall
@@ -382,10 +398,60 @@ def collisionBlockDown(leftx, rightx, y):
         fez['jump'] = 9999
         fezFall = False
         return True
+    if checkFallingTetrisDown(charMapX_l,charMapY):
+        fezFall = False
+        return True
+    if checkFallingTetrisDown(charMapX_r,charMapY):
+        fezFall = False
+        return True
+
     # 바닥이 없는 경우
     if fezFall == False:
         f_time = time.time()
         fezFall = True
+    return False
+
+def checkFallingTetris(topX, topY, faceX, faceY, legX, legY):
+    tetris = []
+    for x in range(TETRIS_WIDTH_CNT):
+        for y in range(TETRIS_HEIGHT_CNT):
+            if PIECES[m_fallingTetris['shape']][m_fallingTetris['rotation']][y][x] != BLANK:
+                map_Xi, map_Yi = convertBlockIdxToMapIdx(x,y,m_fallingTetris)
+                tetris.append({'x':map_Xi,'y':map_Yi})
+    for i in range(len(tetris)):
+        if topX == tetris[i]['x'] and topY == tetris[i]['y']:
+            return True
+        if faceX == tetris[i]['x'] and faceY == tetris[i]['y']:
+            return True
+        if legX == tetris[i]['x'] and legY == tetris[i]['y']:
+            return True
+    return False
+
+def checkFallingTetrisUp(charX,charY):
+    tetris = []
+    for x in range(TETRIS_WIDTH_CNT):
+        for y in range(TETRIS_HEIGHT_CNT):
+            if PIECES[m_fallingTetris['shape']][m_fallingTetris['rotation']][y][x] != BLANK:
+                map_Xi, map_Yi = convertBlockIdxToMapIdx(x,y,m_fallingTetris)
+                tetris.append({'x':map_Xi,'y':map_Yi})
+    for i in range(len(tetris)):
+        if charX == tetris[i]['x'] and charY == tetris[i]['y']:
+            return charX,charY
+    return -1,-1
+
+def checkFallingTetrisDown(charX,charY):
+    tetris = []
+    for x in range(TETRIS_WIDTH_CNT):
+        for y in range(TETRIS_HEIGHT_CNT):
+            if PIECES[m_fallingTetris['shape']][m_fallingTetris['rotation']][y][x] != BLANK:
+                map_Xi, map_Yi = convertBlockIdxToMapIdx(x,y,m_fallingTetris)
+                tetris.append({'x':map_Xi,'y':map_Yi})
+    for i in range(len(tetris)):
+        if charX == tetris[i]['x'] and charY == tetris[i]['y']:
+            fez['botY'] = m_Map[charY][charX].y
+            fez['topY'] = fez['botY']-fez['height']
+            fez['jump'] = 9999
+            return True
     return False
 
 
@@ -394,21 +460,23 @@ def moveFez():
         #print("fezleft")
         fez_topX, fez_topY = convertPixelToMapIdx(fez['topX']-fez['speed'], fez['topY'])
         fez_faceX, fez_faceY = convertPixelToMapIdx(fez['topX']-fez['speed'], fez['topY']+FEZ_FACE_HEIGHT)
-        fez_legX, fez_legY = convertPixelToMapIdx(fez['leftLegX']-5-fez['speed'], fez['botY']-5)
+        fez_legX, fez_legY = convertPixelToMapIdx(fez['leftLegX']-fez['speed'], fez['botY']-5)
         if m_Map[fez_topY][fez_topX].type == BLANK and m_Map[fez_faceY][fez_faceX].type == BLANK and m_Map[fez_legY][fez_legX].type == BLANK:
-            fez['topX'] -= fez['speed']
-            fez['leftLegX'] = fez['topX'] + FEZ_LEG_RIGHT_GAP
-            fez['rightLegX'] = fez['topX'] + (FEZ_WIDTH_SIZE-FEZ_LEG_LEFT_GAP)
+            if checkFallingTetris(fez_topX,fez_topY,fez_faceX,fez_faceY,fez_legX,fez_legY) == False:
+                fez['topX'] -= fez['speed']
+                fez['leftLegX'] = fez['topX'] + FEZ_LEG_RIGHT_GAP
+                fez['rightLegX'] = fez['topX'] + (FEZ_WIDTH_SIZE-FEZ_LEG_LEFT_GAP)
 
     elif fezMoveRight == True:
         #print("fezright")
         fez_topX, fez_topY = convertPixelToMapIdx(fez['topX']+fez['speed']+fez['width']/2, fez['topY'])
         fez_faceX, fez_faceY = convertPixelToMapIdx(fez['topX']+fez['speed']+fez['width']/2, fez['topY']+FEZ_FACE_HEIGHT)
-        fez_legX, fez_legY = convertPixelToMapIdx(fez['rightLegX']-5+fez['speed'], fez['botY']-5)
+        fez_legX, fez_legY = convertPixelToMapIdx(fez['rightLegX']+fez['speed'], fez['botY']-5)
         if m_Map[fez_topY][fez_topX].type == BLANK and m_Map[fez_faceY][fez_faceX].type == BLANK and m_Map[fez_legY][fez_legX].type == BLANK:
-            fez['topX'] += fez['speed']
-            fez['leftLegX'] = fez['topX'] + FEZ_LEG_LEFT_GAP
-            fez['rightLegX'] = fez['topX'] + (FEZ_WIDTH_SIZE-FEZ_LEG_RIGHT_GAP)
+            if checkFallingTetris(fez_topX,fez_topY,fez_faceX,fez_faceY,fez_legX,fez_legY) == False:
+                fez['topX'] += fez['speed']
+                fez['leftLegX'] = fez['topX'] + FEZ_LEG_LEFT_GAP
+                fez['rightLegX'] = fez['topX'] + (FEZ_WIDTH_SIZE-FEZ_LEG_RIGHT_GAP)
 
 
 def fallFez():
@@ -446,6 +514,87 @@ def jumpFez():
             fezFall = True
             f_time = time.time()
 
+def checkEnemyFez():
+    for i in range(len(m_Enemy)):
+        eRect = pygame.Rect((m_Enemy[i].x,m_Enemy[i].y,FEZ_ENEMY_WIDTH,FEZ_ENEMY_HEIGHT))
+        fez['rect'] = pygame.Rect((fez['topX'],fez['topY'],fez['width'],fez['height']))
+        if eRect.colliderect(fez['rect']):
+            print("게임종료")
+            return True
+    return False
+
+
+
+### ENEMY
+def moveEnemy():
+    cnt = 0
+    for i in range(len(m_Enemy)):
+        if m_Enemy[i].dir == 'left':
+            mapx,mapy = convertPixelToMapIdx(m_Enemy[i].x-m_Enemy[i].speed,m_Enemy[i].y)
+            if m_Map[mapy][mapx].type == BLANK and checkLRfallingTetris(mapx,mapy)==False:
+                m_Enemy[i].x -= m_Enemy[i].speed
+            else:
+                m_Enemy[i].dir = 'right'
+        elif m_Enemy[i].dir == 'right':
+            mapx,mapy = convertPixelToMapIdx(m_Enemy[i].x+FEZ_ENEMY_WIDTH+m_Enemy[i].speed,m_Enemy[i].y)
+            if m_Map[mapy][mapx].type == BLANK and checkLRfallingTetris(mapx,mapy)==False:
+                m_Enemy[i].x += m_Enemy[i].speed
+            else:
+                m_Enemy[i].dir = 'left'
+        if m_Enemy[i].x < 0:
+            cnt+=1
+            m_Enemy[i].bPop = True
+    for i in range(cnt):
+        popEnemy()
+
+def popEnemy():
+    for i in range(len(m_Enemy)):
+        if m_Enemy[i].bPop:
+            m_Enemy.pop(i)
+            break
+
+def fallEnemy():
+    collisionDownEnemy()
+    global e_time, g_time
+    for i in range(len(m_Enemy)):
+        if m_Enemy[i].fall:
+            vel = g_time - e_time
+            v = -vel*20
+            m_Enemy[i].y = m_Enemy[i].y + v
+
+#def collisionLeftRightEnemy():
+#    for i in range(len(m_Enemy)):
+#        if m_Enemy[i].dir == 'left':
+def checkLRfallingTetris(ex,ey):
+    tetris = []
+    for x in range(TETRIS_WIDTH_CNT):
+        for y in range(TETRIS_HEIGHT_CNT):
+            if PIECES[m_fallingTetris['shape']][m_fallingTetris['rotation']][y][x] != BLANK:
+                map_Xi, map_Yi = convertBlockIdxToMapIdx(x,y,m_fallingTetris)
+                tetris.append({'x':map_Xi,'y':map_Yi})
+    for i in range(len(m_Enemy)):
+        for i in range(len(tetris)):
+            if ex == tetris[i]['x'] and ey == tetris[i]['y']:
+                return True
+    return False
+
+def collisionDownEnemy():
+    global e_time
+    for i in range(len(m_Enemy)):
+        mapX, mapY = convertPixelToMapIdx(m_Enemy[i].x,m_Enemy[i].y+FEZ_ENEMY_HEIGHT+5)
+        if m_Map[mapY][mapX].type != BLANK or checkLRfallingTetris(mapX,mapY)==True:
+            m_Enemy[i].fall = False
+            m_Enemy[i].y = m_Map[mapY][mapX].y-FEZ_ENEMY_HEIGHT
+        else:
+            m_Enemy[i].fall = True
+            e_time = time.time()
+
+def enemyImage():
+    for i in range(len(m_Enemy)):
+        if m_Enemy[i].img < 3:
+            m_Enemy[i].img += 1
+        else:
+            m_Enemy[i].img = 0
 
 # render
 def drawBoard():
@@ -481,6 +630,14 @@ def drawMovingTetris():
 def drawFez():
     fez['rect'] = pygame.Rect((fez['topX'],fez['topY'],fez['width'],fez['height']))
     DISPLAYSURF.blit(fez['img'],fez['rect'])
+
+def drawEnemy():
+    for i in range(len(m_Enemy)):
+        enemyImg = pygame.image.load(ENEMY_TYPE[m_Enemy[i].img])
+        eRect = pygame.Rect((m_Enemy[i].x,m_Enemy[i].y,FEZ_ENEMY_WIDTH,FEZ_ENEMY_HEIGHT))
+        if m_Enemy[i].dir == 'right':
+            enemyImg = pygame.transform.flip(enemyImg,True,False)
+        DISPLAYSURF.blit(enemyImg,eRect)
 
 
 def imgSprite():

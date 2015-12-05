@@ -16,7 +16,7 @@ class FrozenServer(Server):
     channelClass = ClientChannel
     def __init__(self, *args, **kwargs):
         Server.__init__(self, *args, **kwargs)  # create server
-        print("server aceept")
+        print("server accept")
         
         #self.games = []
         #self.queue = None

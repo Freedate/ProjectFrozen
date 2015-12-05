@@ -37,7 +37,8 @@ LIGHTBLUE   = ( 20,  20, 175)
 YELLOW      = (155, 155,   0)
 LIGHTYELLOW = (175, 175,  20)
 COLORS      = (     BLUE,      GREEN,      RED,      YELLOW)
-BLOCKTYPE = ('images/block_1.png','images/ground_2.png','images/underground_6.png','images/box.png')
+# BLOCKTYPE = ('images/block_1.png','images/ground_2.png','images/underground_6.png','images/box.png')
+BLOCKTYPE = ('images/ground_1.png','images/ground_2.png','images/ground_3.png','images/ground_4.png','images/ground_5.png','images/ground_6.png','images/underground_1.png','images/underground_2.png','images/underground_3.png','images/box.png')
 
 BORDERCOLOR = LIGHTBLUE
 BGCOLOR = BLACK
@@ -166,24 +167,38 @@ class myMap:
         self.y = y
         self.item = item
 
+class myEnemy:
+    def __init__(self,x,y,speed,dir,img):
+        self.x = x
+        self.y = y
+        self.speed = speed
+        self.dir = dir
+        self.img = img
+        self.fall = False
+        self.bPop = False
 
+FEZ_ENEMY_WIDTH = 29
+FEZ_ENEMY_HEIGHT = 25
+ENEMY_TYPE = ('images/stage1/enemy_move1.png','images/stage1/enemy_move2.png','images/stage1/enemy_move3.png','images/stage1/enemy_move4.png')
 
 # variables
 m_GameStep = STEP.input.value
 m_Map = [[0 for col in range(MAP_WIDTH_CNT)] for row in range(MAP_HEIGHT_CNT)]
+m_Enemy = []
+
 initShape = random.choice(list(PIECES.keys()))
 m_fallingTetris = {'shape': initShape,
                 'rotation': random.randint(0, len(PIECES[initShape]) - 1),
                 'x': int(BOARD_WIDTH_CNT / 2),
                 'y': -2, # start it above the board (i.e. less than 0)
                 'color': random.randint(0, len(BLOCKTYPE)-1)}
+
 initShape2 = random.choice(list(PIECES.keys()))
 m_nextTetris = {'shape': initShape2,
                 'rotation': random.randint(0, len(PIECES[initShape2]) - 1),
                 'x': int(BOARD_WIDTH_CNT / 2),
                 'y': -2, # start it above the board (i.e. less than 0)
                 'color': random.randint(0, len(BLOCKTYPE)-1)}
-
 
 #### Fez
 FEZ_CAMERASLACK = 90
@@ -194,7 +209,7 @@ FEZ_SPEED = 5
 FEZ_WIDTH_SIZE = 27
 FEZ_HEIGHT_SIZE = 37
 FEZ_START_X = TETRIS_LEFT_GAP+BOXSIZE
-FEZ_START_Y = TETRIS_TOP_GAP+(BOARD_HEIGHT_CNT-4)*BOXSIZE-160
+FEZ_START_Y = TETRIS_TOP_GAP+(BOARD_HEIGHT_CNT-4)*BOXSIZE-40
 FEZ_LEG_LEFT_GAP = 8
 FEZ_LEG_RIGHT_GAP = 11
 FEZ_FACE_HEIGHT = 14
