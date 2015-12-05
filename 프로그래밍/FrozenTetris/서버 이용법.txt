@@ -1,0 +1,9 @@
+cmd로 서버를 열때, 오류가 나는 경우...
+
+1. 비주얼스튜디오의 Solution Explorer를 연다
+2. server.py를 오른클릭하여 start without debugging 혹은 start with debugging을 눌러 서버를 킨다.
+3. cmd창이 켜지면 그냥 엔터를 치거나 / "ip주소:포트번호"를 입력한다.
+그냥 엔터치면 로컬:8000
+4. 서버를 켰다!
+5. 클라를 킨다. (현재는 자동으로 로컬:8000으로 접속)
+   원하는 ip로 접속시키고 싶으면 NetworkListener클래스의 init의 주석을 풀면 됩니다.
