@@ -5,20 +5,23 @@ from PodSixNet.Connection import ConnectionListener, connection
 from time import sleep
 
 class NetworkListener(ConnectionListener):
+    bStart = False
+    gameid = 0
+
     def __init__(self):
         #address = input("Address of Server: ")
         try:
-            #if not address:
-            #    host, port = "localhost", 8000
-            #else:
-            #    host,port = address.split(":")
-            
+        #    if not address:
+        #        host, port = "localhost", 8000
+        #    else:
+        #        host,port = address.split(":")
             # 강제로 로컬:8000으로 접속
             host, port = "localhost", 8000
-            # host, port = "192.168.11.103", 5000
-
-            self.Connect((host, port))
+            # host, port = "203.252.182.154", 5000
+            self.Connect((host, int(port)))
             print("Chat client started")
+
+            self.bStart = False;    # 게임이 시작했는지
         except:
             error = sys.exc_info()[0]
             print(error)
@@ -31,6 +34,28 @@ class NetworkListener(ConnectionListener):
     def Network_disconnected(self, data):
         print('Server disconnected')
         exit() 
+################
+    def Network_gameStart(self, data):
+        self.bStart = True
+        self.gameid = data["gameid"]
+    def Network_fezMove(self, data):
+        global fezMoveLeft, fezMoveRight, fezJump, fezFall, c_time
+        if data["turn"] == "on":
+            if data["move"] == "left":
+                fezMoveLeft = True
+            if data["move"] == "right":
+                fezMoveRight = True
+            if data["move"] == "up":
+                if fezJump == False and fezFall == False:
+                    c_time = g_time
+                    fezJump = True
+        if data["turn"] == "off":
+            if data["move"] == "left":
+                fezMoveLeft = False
+            if data["move"] == "right":
+                fezMoveRight = False
+            if data["move"] == "up":
+                fezJump = False
 
 
 ## functions
@@ -42,60 +67,66 @@ def initProcess():
    
 def inputProcess():
     checkForQuit()
-    global  fezJump, fezMoveLeft, fezMoveRight, fezFall
+    global  fezJump, fezMoveLeft, fezMoveRight, fezFall, NETWORK
 
     # block move
-    if pygame.key.get_pressed()[pygame.K_DOWN] != 0:
-        if checkDown() == True:
-            m_fallingTetris['y'] += 1
+    if NETWORK.gameid == USER.player1.value:
+        if pygame.key.get_pressed()[pygame.K_DOWN] != 0:
+            if checkDown() == True:
+                m_fallingTetris['y'] += 1
 
-    elif pygame.key.get_pressed()[pygame.K_LEFT] != 0:
-        if checkLeftRight(-1) == True:
-            m_fallingTetris['x'] -= 1
+        elif pygame.key.get_pressed()[pygame.K_LEFT] != 0:
+            if checkLeftRight(-1) == True:
+                m_fallingTetris['x'] -= 1
 
-    elif pygame.key.get_pressed()[pygame.K_RIGHT] != 0:
-        if checkLeftRight(1) == True:
-            m_fallingTetris['x'] += 1
+        elif pygame.key.get_pressed()[pygame.K_RIGHT] != 0:
+            if checkLeftRight(1) == True:
+                m_fallingTetris['x'] += 1
     
-    elif pygame.key.get_pressed()[pygame.K_SPACE] != 0:
-        fullDown()
+        elif pygame.key.get_pressed()[pygame.K_SPACE] != 0:
+            fullDown()
 
     for event in pygame.event.get():
-        if pygame.key.get_pressed()[pygame.K_UP] != 0:
-            maxRot = len(PIECES[m_fallingTetris['shape']])-1
-            if m_fallingTetris['rotation']+1 > maxRot:
-                m_fallingTetris['rotation'] = 0
-            else:
-                m_fallingTetris['rotation'] += 1
+        if NETWORK.gameid == USER.player1.value:
+            if pygame.key.get_pressed()[pygame.K_UP] != 0:
+                maxRot = len(PIECES[m_fallingTetris['shape']])-1
+                if m_fallingTetris['rotation']+1 > maxRot:
+                    m_fallingTetris['rotation'] = 0
+                else:
+                    m_fallingTetris['rotation'] += 1
         # fez move
-        if event.type == KEYDOWN:
-            if event.key == K_w:
-                if fezJump == False and fezFall == False:
-                    global c_time
-                    c_time = g_time
-                    fezJump = True
-                connection.Send({"action":"fezPos", "x":fez['topX'], "y":fez['topY']})
-            if event.key == K_a:
-                fezMoveRight = False
-                fezMoveLeft = True
-                if fez['dir'] != 'left':
-                    fez['dir'] = 'left'
-                    fez['img'] = FEZ_IMG_LEFT
-                connection.Send({"action":"fezPos", "x":fez['topX'], "y":fez['topY']})
-            if event.key == K_d:
-                fezMoveLeft = False
-                fezMoveRight = True
-                if fez['dir'] != 'right':
-                    fez['dir'] = 'right'
-                    fez['img'] = FEZ_IMG_RIGHT
-                connection.Send({"action":"fezPos", "x":fez['topX'], "y":fez['topY']})
-        elif event.type == KEYUP:
-            if event.key == K_a:
-                fezMoveLeft = False
-            if event.key == K_d:
-                fezMoveRight = False
-            if event.key == K_w:
-                fezJump = False
+        if NETWORK.gameid == USER.player0.value:
+            if event.type == KEYDOWN:
+                if event.key == K_w:
+                    if fezJump == False and fezFall == False:
+                        global c_time
+                        c_time = g_time
+                        fezJump = True
+                    sendServer({"action":"fezMove", "move":"up", "turn":"on"})
+                if event.key == K_a:
+                    #fezMoveRight = False
+                    fezMoveLeft = True
+                    if fez['dir'] != 'left':
+                        fez['dir'] = 'left'
+                        fez['img'] = FEZ_IMG_LEFT
+                    sendServer({"action":"fezMove", "move":"left", "turn":"on"})
+                if event.key == K_d:
+                    #fezMoveLeft = False
+                    fezMoveRight = True
+                    if fez['dir'] != 'right':
+                        fez['dir'] = 'right'
+                        fez['img'] = FEZ_IMG_RIGHT
+                    sendServer({"action":"fezMove", "move":"right", "turn":"on"})
+            elif event.type == KEYUP:
+                if event.key == K_a:
+                    fezMoveLeft = False
+                    sendServer({"action":"fezMove", "move":"left", "turn":"off"})
+                if event.key == K_d:
+                    fezMoveRight = False
+                    sendServer({"action":"fezMove", "move":"right", "turn":"off"})
+                if event.key == K_w:
+                    fezJump = False
+                    sendServer({"action":"fezMove", "move":"up", "turn":"off"})
     return
 
 fez_time = time.time()
@@ -108,7 +139,8 @@ def dataProcess():
     
     curTime = time.time()
 
-    moveComponents()
+    #if NETWORK.bStart:
+    #    moveComponents()
 
     # fez
     if curTime-fez_time >= 0.1:
@@ -572,7 +604,6 @@ def checkEnemyFez():
     return False
 
 
-
 ### ENEMY
 def moveEnemy():
     cnt = 0
@@ -775,9 +806,17 @@ def checkForKeyPress():
         return event.key
     return None
 
+#connection.Send({"action":"fezMove", "move":"up", "turn":"on"})
+def sendServer(data):
+    global NETWORK
+    if NETWORK.bStart == False:
+        return
+
+    connection.Send(data)
+
 #### main
 def main():
-    global FPSCLOCK, DISPLAYSURF, BASICFONT, BIGFONT
+    global FPSCLOCK, DISPLAYSURF, BASICFONT, BIGFONT, NETWORK
     pygame.init()
     FPSCLOCK = pygame.time.Clock()
     DISPLAYSURF = pygame.display.set_mode((WINDOWWIDTH,WINDOWHEIGHT))
@@ -792,11 +831,11 @@ def main():
 
     # start game
     initProcess()
-    network_listener = NetworkListener()
+    NETWORK = NetworkListener()
 
     while True:
         connection.Pump()
-        network_listener.Pump()
+        NETWORK.Pump()
         mainLoop()
 
     releaseProcess()

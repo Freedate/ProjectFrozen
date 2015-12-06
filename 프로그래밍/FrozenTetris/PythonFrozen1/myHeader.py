@@ -61,6 +61,8 @@ BGCOLOR = BLACK
 TEXTCOLOR = WHITE
 TEXTSHADOWCOLOR = GRAY
 
+NETWORK = None
+
 # block type
 S_SHAPE_TEMPLATE = [['.....',
                      '.....',
@@ -175,6 +177,7 @@ PIECES = {'S': S_SHAPE_TEMPLATE,
 # step
 STEP = Enum('STEP','ready input move check_erase erase check_down gameover gameclear')
 
+
 # class
 class myMap:
     def __init__(self, type, x, y, item):
@@ -194,6 +197,10 @@ class myEnemy:
         self.height = height
         self.fall = False
         self.bPop = False
+
+class USER(Enum):
+    player0 = 0
+    player1 = 1
 
 FEZ_ENEMY_WIDTH1 = 29
 FEZ_ENEMY_HEIGHT1 = 25

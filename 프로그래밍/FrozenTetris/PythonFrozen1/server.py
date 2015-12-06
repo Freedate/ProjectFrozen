@@ -9,39 +9,46 @@ class ClientChannel(Channel):
     def Close(self):
         self._server.DelPlayer(self)
 
-    def Network_fezPos(self, data):
-        self._server.PrintStr("fezPos : "+str(data['x'])+","+str(data['y']))
+    def Network_fezMove(self, data):
+        self._server.FezMove(data["move"], data["turn"])
 
 class FrozenServer(Server):
     channelClass = ClientChannel
+
     def __init__(self, *args, **kwargs):
         Server.__init__(self, *args, **kwargs)  # create server
         print("server accept")
         
-        #self.games = []
-        #self.queue = None
-        #self.currentIndex = 0
+        self.queue = None
+        self.currentIdx = 0
 
     def Connected(self, channel, addr):
         print('new connection:', str(channel.addr))
 
-        #if self.queue == None:         # 첫번째 유저
-        #    self.currentIndex += 1
-        #    channel.gameid = self.currentIndex
-        #    self.queue = Game(channel, self.currentIndex)
-        #else:      # 두번째 유저
-        #    channel.gameid=self.currentIndex
-        #    self.queue.player1=channel
-        #    self.queue.player0.Send({"action": "startgame","player":0, "gameid": self.queue.gameid})
-        #    self.queue.player1.Send({"action": "startgame","player":1, "gameid": self.queue.gameid})
-        #    self.games.append(self.queue)
-        #    self.queue=None
+        if self.queue == None:         # 첫번째 유저
+            print("First User")
+            self.queue = Game(channel, self.currentIdx)
+            self.currentIdx += 1
+        else:      # 두번째 유저
+            print("Second User")
+            self.queue.player1 = channel
+            self.queue.player0.Send({"action": "gameStart", "gameid":0})    # fez
+            self.queue.player1.Send({"action": "gameStart", "gameid":1})    # block
 
     def DelPlayer(self, player):
         print("Deleting Player" + str(player.addr))
+        # 변수 리셋
+        self.queue = None
+        self.currentIdx = 0
+        exit()
 
     def PrintStr(self, str):
         print(str)
+
+    def FezMove(self, move, turn):
+        # player0의 움직임을 player1에게 전달
+        print(move, " ", turn)
+        self.queue.player1.Send({"action": "fezMove", "move":move, "turn":turn})
 
     def tick(self):
         while True:
