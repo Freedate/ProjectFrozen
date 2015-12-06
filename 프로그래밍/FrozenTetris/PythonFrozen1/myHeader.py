@@ -7,7 +7,7 @@ from pygame.locals import *
 FPS = 25
 WINDOWWIDTH = 800
 WINDOWHEIGHT = 540
-SCREEN_SPEED = 1
+SCREEN_SPEED = 2
 MOVEBLOCK = 0
 MOVECNT = 0
 
@@ -38,7 +38,23 @@ YELLOW      = (155, 155,   0)
 LIGHTYELLOW = (175, 175,  20)
 COLORS      = (     BLUE,      GREEN,      RED,      YELLOW)
 # BLOCKTYPE = ('images/block_1.png','images/ground_2.png','images/underground_6.png','images/box.png')
-BLOCKTYPE = ('images/ground_1.png','images/ground_2.png','images/ground_3.png','images/ground_4.png','images/ground_5.png','images/ground_6.png','images/underground_1.png','images/underground_2.png','images/underground_3.png','images/box.png')
+BLOCKTYPE = [('resources/graphics/stage1_sky/tile/ground_1.png','resources/graphics/stage1_sky/tile/ground_2.png','resources/graphics/stage1_sky/tile/ground_3.png','resources/graphics/stage1_sky/tile/ground_4.png','resources/graphics/stage1_sky/tile/ground_5.png','resources/graphics/stage1_sky/tile/ground_6.png','resources/graphics/stage1_sky/tile/underground_1.png','resources/graphics/stage1_sky/tile/underground_2.png','resources/graphics/stage1_sky/tile/underground_3.png','resources/graphics/mainTile/box.png'),
+             ('resources/graphics/stage2_desert/tile/ground_1.png','resources/graphics/stage2_desert/tile/ground_2.png','resources/graphics/stage2_desert/tile/ground_3.png','resources/graphics/stage2_desert/tile/ground_4.png','resources/graphics/stage2_desert/tile/ground_5.png','resources/graphics/stage2_desert/tile/ground_6.png','resources/graphics/stage2_desert/tile/underground_1.png','resources/graphics/stage2_desert/tile/underground_2.png','resources/graphics/stage2_desert/tile/underground_3.png','resources/graphics/mainTile/box.png'),
+             ('resources/graphics/stage2_desert/tile/ground_1.png','resources/graphics/stage2_desert/tile/ground_2.png','resources/graphics/stage2_desert/tile/ground_3.png','resources/graphics/stage2_desert/tile/ground_4.png','resources/graphics/stage2_desert/tile/ground_5.png','resources/graphics/stage2_desert/tile/ground_6.png','resources/graphics/stage2_desert/tile/underground_1.png','resources/graphics/stage2_desert/tile/underground_2.png','resources/graphics/stage2_desert/tile/underground_3.png','resources/graphics/mainTile/box.png')]
+TETRISTYPE = [('resources/graphics/stage1_sky/block/block_1.png','resources/graphics/stage1_sky/block/block_2.png','resources/graphics/stage1_sky/block/block_3.png','resources/graphics/stage1_sky/block/block_4.png','resources/graphics/stage1_sky/block/block_5.png'),
+              ('resources/graphics/stage2_desert/block/block_1.png','resources/graphics/stage2_desert/block/block_2.png','resources/graphics/stage2_desert/block/block_3.png','resources/graphics/stage2_desert/block/block_4.png','resources/graphics/stage2_desert/block/block_5.png')]
+BACKTYPE = [('resources/graphics/stage1_sky/background/stage_bg1.png','resources/graphics/stage1_sky/background/stage_bg2.png'),
+            ('resources/graphics/stage2_desert/background/stage_bg1.png','resources/graphics/stage2_desert/background/stage_bg2.png')]
+back1 = {'x':0,'y':0,'width':0,'height':0}
+back2 = {'x':0,'y':0,'width':0,'height':0}
+backImg1 = pygame.image.load(BACKTYPE[0][0])
+backImg2 = pygame.image.load(BACKTYPE[1][1])
+BACKIMG = [backImg1,backImg2]
+
+BACK_WIDTH_STAGE2 = 1536
+BACK_HEIGHT_STAGE2 = 210
+BACK_WIDTH_STAGE2 = 1536
+BACK_HEIGHT_STAGE2 = 448
 
 BORDERCOLOR = LIGHTBLUE
 BGCOLOR = BLACK
@@ -168,18 +184,24 @@ class myMap:
         self.item = item
 
 class myEnemy:
-    def __init__(self,x,y,speed,dir,img):
+    def __init__(self,x,y,speed,dir,img,width,height):
         self.x = x
         self.y = y
         self.speed = speed
         self.dir = dir
         self.img = img
+        self.width = width
+        self.height = height
         self.fall = False
         self.bPop = False
 
-FEZ_ENEMY_WIDTH = 29
-FEZ_ENEMY_HEIGHT = 25
-ENEMY_TYPE = ('images/stage1/enemy_move1.png','images/stage1/enemy_move2.png','images/stage1/enemy_move3.png','images/stage1/enemy_move4.png')
+FEZ_ENEMY_WIDTH1 = 29
+FEZ_ENEMY_HEIGHT1 = 25
+FEZ_ENEMY_WIDTH2 = 28
+FEZ_ENEMY_HEIGHT2 = 37
+ENEMY_TYPE = [('resources/graphics/stage1_sky/enemy/enemy_move1.png','resources/graphics/stage1_sky/enemy/enemy_move2.png','resources/graphics/stage1_sky/enemy/enemy_move3.png','resources/graphics/stage1_sky/enemy/enemy_move4.png'),
+              ('resources/graphics/stage2_desert/enemy/enemy_move1.png','resources/graphics/stage2_desert/enemy/enemy_move2.png','resources/graphics/stage2_desert/enemy/enemy_move3.png','resources/graphics/stage2_desert/enemy/enemy_move4.png'),
+              ('resources/graphics/stage3_parade/enemy/enemy_move1.png','resources/graphics/stage3_parade/enemy/enemy_move2.png','resources/graphics/stage3_parade/enemy/enemy_move3.png','resources/graphics/stage3_parade/enemy/enemy_move4.png')]
 
 # variables
 m_GameStep = STEP.input.value
@@ -191,14 +213,14 @@ m_fallingTetris = {'shape': initShape,
                 'rotation': random.randint(0, len(PIECES[initShape]) - 1),
                 'x': int(BOARD_WIDTH_CNT / 2),
                 'y': -2, # start it above the board (i.e. less than 0)
-                'color': random.randint(0, len(BLOCKTYPE)-1)}
+                'color': random.randint(0, len(BLOCKTYPE[0])-1)}
 
 initShape2 = random.choice(list(PIECES.keys()))
 m_nextTetris = {'shape': initShape2,
                 'rotation': random.randint(0, len(PIECES[initShape2]) - 1),
                 'x': int(BOARD_WIDTH_CNT / 2),
                 'y': -2, # start it above the board (i.e. less than 0)
-                'color': random.randint(0, len(BLOCKTYPE)-1)}
+                'color': random.randint(0, len(BLOCKTYPE[0])-1)}
 
 #### Fez
 FEZ_CAMERASLACK = 90
@@ -240,7 +262,7 @@ FEZ_IMG_JUMP_LEFT4 = pygame.transform.flip(FEZ_IMG_JUMP_RIGHT4,True,False)
 fez = {'img':FEZ_IMG_RIGHT,'dir':'right','width':FEZ_WIDTH_SIZE,'height':FEZ_HEIGHT_SIZE,
        'topX':FEZ_START_X,'topY':FEZ_START_Y,
        'leftLegX':FEZ_START_X+FEZ_LEG_LEFT_GAP,'rightLegX':FEZ_START_X+FEZ_WIDTH_SIZE-FEZ_LEG_RIGHT_GAP,
-       'botY':FEZ_START_Y+FEZ_HEIGHT_SIZE,'jump':9999,'speed':FEZ_SPEED}
+       'botY':FEZ_START_Y+FEZ_HEIGHT_SIZE,'jump':9999,'speed':FEZ_SPEED,'stage':1}
 
 fezMoveLeft = False
 fezMoveRight = False

@@ -1,0 +1,6 @@
+BLOCKTYPE = ('images/stage1/ground_1.png','images/stage1/ground_2.png','images/stage1/ground_3.png','images/stage1/ground_4.png','images/stage1/ground_5.png','images/stage1/ground_6.png','images/stage1/underground_1.png','images/stage1/underground_2.png','images/stage1/underground_3.png','images/box.png')
+
+ÃÑ 10°³
+ground 		0~5 : 6°³ 
+underground 	6~8 : 3°³
+box 		  9 : 1°³
