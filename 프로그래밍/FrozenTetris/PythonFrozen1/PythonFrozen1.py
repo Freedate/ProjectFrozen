@@ -139,8 +139,8 @@ def dataProcess():
     
     curTime = time.time()
 
-    #if NETWORK.bStart:
-    #    moveComponents()
+    if NETWORK.bStart:
+        moveComponents()
 
     # fez
     if curTime-fez_time >= 0.1:
@@ -157,7 +157,7 @@ def dataProcess():
     fallEnemy()
 
     checkEnemyFez()
-
+    checkGameover()
     # tetris
     if curTime-tetris_time >= 0.3:
         tetris_time = time.time()
@@ -595,14 +595,22 @@ def jumpFez():
             f_time = time.time()
 
 def checkEnemyFez():
+    global STATE
     for i in range(len(m_Enemy)):
         eRect = pygame.Rect((m_Enemy[i].x,m_Enemy[i].y,m_Enemy[i].width,m_Enemy[i].height))
         fez['rect'] = pygame.Rect((fez['topX'],fez['topY'],fez['width'],fez['height']))
         if eRect.colliderect(fez['rect']):
             print("게임종료")
-            return True
-    return False
+            STATE = "GAMEOVER"
+def checkGameover():
+    global STATE
+    if fez['topX'] < TETRIS_LEFT_GAP :
+        print("게임 종료")
+        STATE = "GAMEOVER"
 
+    if fez['topY']>460:
+        print("게임 종료")
+        STATE = "GAMEOVER"
 
 ### ENEMY
 def moveEnemy():
@@ -848,21 +856,26 @@ def title():
                 if b1.collidepoint(pos):
                     print("게임시작")
                     STATE = "GAME"
-
                 if b2.collidepoint(pos):
                     print("이어하기")
-
                 if b3.collidepoint(pos):
                     print("크레딧")
-
                 if b4.collidepoint(pos):
                     print("게임종료")
-                    terminate()
+                    wnate()
             return
-def Gameover(): #아직 미구현
+
+
+def Gameover(): 
     global STATE
-    if fezOver:
-        STATE = "GAMEOVER"
+
+    gameover = pygame.image.load('images/gameover.png')
+    gameover_rect = gameover.get_rect()
+    gameover_rect = gameover_rect.move(0,0)
+    over = DISPLAYSURF.blit(gameover, gameover_rect)
+    pygame.display.flip()
+    pygame.time.delay(2000)
+    terminate()
 
 #### main
 def main():
@@ -885,6 +898,17 @@ def main():
             title()
            
         elif STATE == "GAME":
+
+
+            opening = pygame.image.load('images/opening.png')
+            opening_rect = opening.get_rect()
+
+            opening = DISPLAYSURF.blit(opening, opening_rect)
+            pygame.display.flip()
+
+            pygame.time.delay(3000)
+            
+
                 # start game
             g_time = time.time()
             g_time-=1
@@ -894,8 +918,11 @@ def main():
                 connection.Pump()
                 NETWORK.Pump()
                 mainLoop()
+                if STATE == "GAMEOVER":
+                    break
         elif STATE == "GAMEOVER":
-            releaseProcess()
+            Gameover()
+            
 
 
 
