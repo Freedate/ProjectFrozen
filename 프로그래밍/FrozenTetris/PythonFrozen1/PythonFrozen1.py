@@ -806,15 +806,13 @@ def checkForKeyPress():
         return event.key
     return None
 
-<<<<<<< HEAD
-#connection.Send({"action":"fezMove", "move":"up", "turn":"on"})
 def sendServer(data):
     global NETWORK
     if NETWORK.bStart == False:
         return
 
     connection.Send(data)
-=======
+
 def title():
     global STATE
     titleimg = pygame.image.load('images/title.png').convert()
@@ -865,7 +863,6 @@ def Gameover(): #아직 미구현
     global STATE
     if fezOver:
         STATE = "GAMEOVER"
->>>>>>> be9b94b71708542c1849ad14aefd6a93ecade7d7
 
 #### main
 def main():
@@ -883,16 +880,6 @@ def main():
 
 
     # start game
-<<<<<<< HEAD
-    initProcess()
-    NETWORK = NetworkListener()
-
-    while True:
-        connection.Pump()
-        NETWORK.Pump()
-        mainLoop()
-=======
-
     while True:
         if STATE == "TITLE":
             title()
@@ -902,14 +889,13 @@ def main():
             g_time = time.time()
             g_time-=1
             initProcess()
-            network_listener = NetworkListener()
+            NETWORK = NetworkListener()
             while True:
                 connection.Pump()
-                network_listener.Pump()
+                NETWORK.Pump()
                 mainLoop()
         elif STATE == "GAMEOVER":
             releaseProcess()
->>>>>>> be9b94b71708542c1849ad14aefd6a93ecade7d7
 
 
 
