@@ -60,9 +60,11 @@ class NetworkListener(ConnectionListener):
 
 ## functions
 def initProcess():
+    global SCORE
     # initMap("map/testmap.txt")
     initMap("map/stage2/stage.txt")
     initBackImg(BACK_WIDTH_STAGE2,BACK_HEIGHT_STAGE2)
+    SCORE = 0
     return     
    
 def inputProcess():
@@ -136,11 +138,17 @@ def dataProcess():
     global m_GameStep
     global m_fallingTetris
     global tetris_time, fez_time, f_time
+    global SCORE
     
     curTime = time.time()
 
-    if NETWORK.bStart:
-        moveComponents()
+
+    # 2인접속시 실행할때 
+    #if NETWORK.bStart:
+    #    moveComponents()
+
+    # 1인접속시 실행할때
+    moveComponents()
 
     # fez
     if curTime-fez_time >= 0.1:
@@ -175,7 +183,7 @@ def dataProcess():
 
         elif m_GameStep == STEP.gameover.value:
             m_GameStep = STEP.ready.value
-
+    SCORE += SCREEN_SPEED
     return
 
 def renderProcess():
@@ -186,7 +194,7 @@ def renderProcess():
     drawFez()
     drawEnemy()
     drawBound()
-
+    drawScore()
     pygame.display.update()
     FPSCLOCK.tick(FPS)
     return
@@ -216,10 +224,10 @@ def initBackImg(width,height):
 
 def initFez(x,y,stage):
     fez['topX'] = x
-    fez['topY'] = y
+    fez['topY'] = y+160
     fez['leftLegX'] = x+FEZ_LEG_LEFT_GAP
     fez['rightLegX'] = x+FEZ_WIDTH_SIZE-FEZ_LEG_RIGHT_GAP
-    fez['botY'] = y+FEZ_HEIGHT_SIZE
+    fez['botY'] = y+FEZ_HEIGHT_SIZE+160
     fez['jump'] = 9999
     fez['stage'] = stage
     fez['img'] = FEZ_IMG_RIGHT
@@ -731,7 +739,12 @@ def drawEnemy():
         if m_Enemy[i].dir == 'right':
             enemyImg = pygame.transform.flip(enemyImg,True,False)
         DISPLAYSURF.blit(enemyImg,eRect)
-
+def drawScore():
+    global DISPLAYSURF
+    font = pygame.font.Font(None, 40)
+    text = font.render(u"Score : %s" % SCORE, True, (255, 255, 255))
+    DISPLAYSURF.blit(text,text.get_rect().move(20,500))
+    
 
 def imgSprite():
     
@@ -867,12 +880,15 @@ def title():
 
 
 def Gameover(): 
-    global STATE
+    global STATE, SCORE
 
     gameover = pygame.image.load('images/gameover.png')
     gameover_rect = gameover.get_rect()
     gameover_rect = gameover_rect.move(0,0)
     over = DISPLAYSURF.blit(gameover, gameover_rect)
+    font = pygame.font.Font(None, 40)
+    text = font.render("Your Score : %s" % SCORE, True, (255, 255, 255))
+    DISPLAYSURF.blit(text,text.get_rect().move(300,270))
     pygame.display.flip()
     pygame.time.delay(2000)
     terminate()
