@@ -6,16 +6,16 @@ from time import sleep
 
 class NetworkListener(ConnectionListener):
     def __init__(self):
-        #address = input("Address of Server: ")
+        address = input("Address of Server: ")
         try:
-            #if not address:
-            #    host, port = "localhost", 8000
-            #else:
-            #    host,port = address.split(":")
+            if not address:
+                host, port = "localhost", 8000
+            else:
+                host,port = address.split(":")
             
             # 강제로 로컬:8000으로 접속
-            host, port = "localhost", 8000
-            # host, port = "121.161.170.114", 8000
+            #host, port = "localhost", 8000
+            #host, port = "192.168.11.103", 5000
 
             self.Connect((host, port))
             print("Chat client started")
