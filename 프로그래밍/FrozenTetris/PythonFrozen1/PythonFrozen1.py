@@ -12,10 +12,6 @@ class NetworkListener(ConnectionListener):
                 host, port = "localhost", 8000
             else:
                 host,port = address.split(":")
-            
-            # 강제로 로컬:8000으로 접속
-            #host, port = "localhost", 8000
-            #host, port = "192.168.11.103", 5000
 
             self.Connect((host, port))
             print("Chat client started")

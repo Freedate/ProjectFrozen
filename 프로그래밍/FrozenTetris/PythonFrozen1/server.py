@@ -62,7 +62,7 @@ if not address:
     host, port = "localhost", 8000
 else:
     host,port = address.split(":")
-#frozenServe = FrozenServer(localaddr=(host, int(port)))
+frozenServe = FrozenServer(localaddr=(host, int(port)))
 #frozenServe = FrozenServer(localaddr=("192.168.11.103", int("5000")))
 frozenServe.tick()
 
