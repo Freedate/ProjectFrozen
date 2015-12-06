@@ -806,6 +806,7 @@ def checkForKeyPress():
         return event.key
     return None
 
+<<<<<<< HEAD
 #connection.Send({"action":"fezMove", "move":"up", "turn":"on"})
 def sendServer(data):
     global NETWORK
@@ -813,6 +814,58 @@ def sendServer(data):
         return
 
     connection.Send(data)
+=======
+def title():
+    global STATE
+    titleimg = pygame.image.load('images/title.png').convert()
+    titlerect = titleimg.get_rect()
+    DISPLAYSURF.blit(titleimg, titlerect)
+    button_1 = pygame.image.load('images/button_1.png')
+    button1_rect = button_1.get_rect()
+    button1_rect = button1_rect.move(355,210)
+    b1 = DISPLAYSURF.blit(button_1, button1_rect)
+
+    button_2 = pygame.image.load('images/button_2.png')
+    button2_rect = button_2.get_rect()
+    button2_rect = button2_rect.move(355,250)
+    b2 = DISPLAYSURF.blit(button_2, button2_rect)
+
+    button_3 = pygame.image.load('images/button_3.png')
+    button3_rect = button_3.get_rect()
+    button3_rect = button3_rect.move(355,290)
+    b3 = DISPLAYSURF.blit(button_3, button3_rect)
+
+    button_4 = pygame.image.load('images/button_4.png')
+    button4_rect = button_4.get_rect()
+    button4_rect = button4_rect.move(355,330)
+    b4 = DISPLAYSURF.blit(button_4, button4_rect)
+    pygame.display.flip()
+
+    while True:
+        for event in pygame.event.get():
+            if event.type == pygame.MOUSEBUTTONDOWN and event.button == 1:
+                ## if mouse is pressed get position of cursor ##
+                pos = pygame.mouse.get_pos()
+                ## check if cursor is on button ##
+                if b1.collidepoint(pos):
+                    print("게임시작")
+                    STATE = "GAME"
+
+                if b2.collidepoint(pos):
+                    print("이어하기")
+
+                if b3.collidepoint(pos):
+                    print("크레딧")
+
+                if b4.collidepoint(pos):
+                    print("게임종료")
+                    terminate()
+            return
+def Gameover(): #아직 미구현
+    global STATE
+    if fezOver:
+        STATE = "GAMEOVER"
+>>>>>>> be9b94b71708542c1849ad14aefd6a93ecade7d7
 
 #### main
 def main():
@@ -830,6 +883,7 @@ def main():
 
 
     # start game
+<<<<<<< HEAD
     initProcess()
     NETWORK = NetworkListener()
 
@@ -837,8 +891,26 @@ def main():
         connection.Pump()
         NETWORK.Pump()
         mainLoop()
+=======
 
-    releaseProcess()
+    while True:
+        if STATE == "TITLE":
+            title()
+           
+        elif STATE == "GAME":
+                # start game
+            g_time = time.time()
+            g_time-=1
+            initProcess()
+            network_listener = NetworkListener()
+            while True:
+                connection.Pump()
+                network_listener.Pump()
+                mainLoop()
+        elif STATE == "GAMEOVER":
+            releaseProcess()
+>>>>>>> be9b94b71708542c1849ad14aefd6a93ecade7d7
+
 
 
 ## function calls
