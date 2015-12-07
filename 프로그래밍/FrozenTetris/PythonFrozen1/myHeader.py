@@ -7,7 +7,7 @@ from pygame.locals import *
 FPS = 25
 WINDOWWIDTH = 800
 WINDOWHEIGHT = 540
-SCREEN_SPEED = 2
+SCREEN_SPEED = 1
 MOVEBLOCK = 0
 MOVECNT = 0
 STATE = "GAME"
@@ -178,7 +178,6 @@ PIECES = {'S': S_SHAPE_TEMPLATE,
 
 # step
 STEP = Enum('STEP','ready input move check_erase erase check_down gameover gameclear')
-
 
 # class
 class myMap:

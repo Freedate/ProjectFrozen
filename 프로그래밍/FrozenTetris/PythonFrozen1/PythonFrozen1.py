@@ -173,22 +173,19 @@ def dataProcess():
     global m_fallingTetris
     global tetris_time, fez_time, f_time
     global SCORE, NETWORK
-    
     curTime = time.time()
 
-
-    # 2인접속시 실행할때 
+    # 2인접속시 실행 
     #if NETWORK.bStart:
-        #moveComponents()
-
-    # 1인접속시 실행할때
-    # moveComponents()
+    #   moveComponents()
 
     # fez
     if curTime-fez_time >= 0.1:
         fez_time = time.time()
         imgSprite()
         enemyImage()
+        if NETWORK.bStart:
+            SCORE += SCREEN_SPEED
 
     if NETWORK.gameid == USER.player0.value:    # 페즈의 움직임
         moveFez()
@@ -196,30 +193,30 @@ def dataProcess():
         if collisionBlockDown(fez['leftLegX'],fez['rightLegX'],fez['botY']+5) == False:
             fallFez() 
 
-    moveEnemy()
-    fallEnemy()
+    if NETWORK.bStart:
+        moveEnemy()
+        fallEnemy()
 
-    checkEnemyFez()
-    checkGameover()
+        checkEnemyFez()
+        checkGameover()
 
-    if NETWORK.bStart and NETWORK.gameid == USER.player1.value:    # tetris
-        if curTime-tetris_time >= 0.3:
-            tetris_time = time.time()
-            if m_GameStep == STEP.ready.value:
-                m_fallingTetris = newTetris()
-                m_GameStep = STEP.input.value
-            elif m_GameStep == STEP.input.value:
-                if isBlocked():
-                    setOnMap()
+        if NETWORK.gameid == USER.player1.value:    # tetris
+            if curTime-tetris_time >= 0.3:
+                tetris_time = time.time()
+                if m_GameStep == STEP.ready.value:
+                    m_fallingTetris = newTetris()
+                    m_GameStep = STEP.input.value
+                elif m_GameStep == STEP.input.value:
+                    if isBlocked():
+                        setOnMap()
+                        m_GameStep = STEP.ready.value
+                    else:
+                        m_fallingTetris['y'] += 1
+                        sendServer({"action":"tetrisMove", "act":"pos", "what":"y", "value":m_fallingTetris['y']})
+
+                elif m_GameStep == STEP.gameover.value:
                     m_GameStep = STEP.ready.value
-                else:
-                    m_fallingTetris['y'] += 1
-                    sendServer({"action":"tetrisMove", "act":"pos", "what":"y", "value":m_fallingTetris['y']})
-
-            elif m_GameStep == STEP.gameover.value:
-                m_GameStep = STEP.ready.value
-    
-                SCORE += SCREEN_SPEED
+            
     return
 
 def renderProcess():
@@ -243,7 +240,7 @@ def mainLoop():
 
     curTime = time.time()
     inputProcess()
-    if curTime - g_time >= 0.05:
+    if curTime - g_time >= 0.03:
         dataProcess()
         if NETWORK.bStart and NETWORK.gameid == USER.player0.value and STATE != "GAMEOVER":
             sendServer({"action":"fezPos", "x":fez["topX"], "y":fez["topY"], "jump":fez["jump"]})
@@ -312,7 +309,7 @@ def initEnemy(x,y):
     if fez['stage'] == 1:
         width = FEZ_ENEMY_WIDTH2
         height = FEZ_ENEMY_HEIGHT2
-    m_Enemy.append(myEnemy(mapX,mapY,5,'left',random.randint(0,3),width,height))
+    m_Enemy.append(myEnemy(mapX, mapY, 5, 'left', random.randint(0,3), width, height))
 
 # input
 
