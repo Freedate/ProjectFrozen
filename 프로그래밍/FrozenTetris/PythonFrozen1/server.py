@@ -10,7 +10,7 @@ class ClientChannel(Channel):
         self._server.DelPlayer(self)
 
     def Network_fezMove(self, data):
-        self._server.FezMove(data["move"], data["turn"])
+        self._server.FezMove(data["move"], data["turn"], data["fez"])
 
 class FrozenServer(Server):
     channelClass = ClientChannel
@@ -45,10 +45,9 @@ class FrozenServer(Server):
     def PrintStr(self, str):
         print(str)
 
-    def FezMove(self, move, turn):
+    def FezMove(self, move, turn, fez):
         # player0의 움직임을 player1에게 전달
-        print(move, " ", turn)
-        self.queue.player1.Send({"action": "fezMove", "move":move, "turn":turn})
+        self.queue.player1.Send({"action": "fezMove", "move":move, "turn":turn, "fez":fez})
 
     def tick(self):
         while True:
@@ -65,11 +64,12 @@ class Game:
 
 print("STARTING SERVER ON LOCALHOST")
 # try:
-address = input("Host:Port (localhost:8000): ")
-if not address:
-    host, port = "localhost", 8000
-else:
-    host,port = address.split(":")
+#address = input("Host:Port (localhost:8000): ")
+#if not address:
+#    host, port = "localhost", 8000
+#else:
+#    host,port = address.split(":")
+host, port = "203.252.182.154", 8000
 frozenServe = FrozenServer(localaddr=(host, int(port)))
 frozenServe.tick()
 

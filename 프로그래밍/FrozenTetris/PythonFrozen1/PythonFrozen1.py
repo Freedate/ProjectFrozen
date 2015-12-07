@@ -16,8 +16,8 @@ class NetworkListener(ConnectionListener):
         #    else:
         #        host,port = address.split(":")
             # 강제로 로컬:8000으로 접속
-            host, port = "localhost", 8000
-            # host, port = "203.252.182.154", 5000
+            # host, port = "localhost", 8000
+            host, port = "203.252.182.154", 8000
             self.Connect((host, int(port)))
             print("Chat client started")
 
@@ -56,6 +56,8 @@ class NetworkListener(ConnectionListener):
                 fezMoveRight = False
             if data["move"] == "up":
                 fezJump = False
+
+        setFezPos(data["fez"])
 
 
 ## functions
@@ -104,31 +106,31 @@ def inputProcess():
                         global c_time
                         c_time = g_time
                         fezJump = True
-                    sendServer({"action":"fezMove", "move":"up", "turn":"on"})
+                    sendServer({"action":"fezMove", "move":"up", "turn":"on", "fez":fez})
                 if event.key == K_a:
                     #fezMoveRight = False
                     fezMoveLeft = True
                     if fez['dir'] != 'left':
                         fez['dir'] = 'left'
                         fez['img'] = FEZ_IMG_LEFT
-                    sendServer({"action":"fezMove", "move":"left", "turn":"on"})
+                    sendServer({"action":"fezMove", "move":"left", "turn":"on", "fez":fez})
                 if event.key == K_d:
                     #fezMoveLeft = False
                     fezMoveRight = True
                     if fez['dir'] != 'right':
                         fez['dir'] = 'right'
                         fez['img'] = FEZ_IMG_RIGHT
-                    sendServer({"action":"fezMove", "move":"right", "turn":"on"})
+                    sendServer({"action":"fezMove", "move":"right", "turn":"on", "fez":fez})
             elif event.type == KEYUP:
                 if event.key == K_a:
                     fezMoveLeft = False
-                    sendServer({"action":"fezMove", "move":"left", "turn":"off"})
+                    sendServer({"action":"fezMove", "move":"left", "turn":"off", "fez":fez})
                 if event.key == K_d:
                     fezMoveRight = False
-                    sendServer({"action":"fezMove", "move":"right", "turn":"off"})
+                    sendServer({"action":"fezMove", "move":"right", "turn":"off", "fez":fez})
                 if event.key == K_w:
                     fezJump = False
-                    sendServer({"action":"fezMove", "move":"up", "turn":"off"})
+                    sendServer({"action":"fezMove", "move":"up", "turn":"off", "fez":fez})
     return
 
 fez_time = time.time()
@@ -138,17 +140,17 @@ def dataProcess():
     global m_GameStep
     global m_fallingTetris
     global tetris_time, fez_time, f_time
-    global SCORE
+    global SCORE, NETWORK
     
     curTime = time.time()
 
 
     # 2인접속시 실행할때 
     #if NETWORK.bStart:
-    #    moveComponents()
+        #moveComponents()
 
     # 1인접속시 실행할때
-    moveComponents()
+    # moveComponents()
 
     # fez
     if curTime-fez_time >= 0.1:
@@ -156,10 +158,11 @@ def dataProcess():
         imgSprite()
         enemyImage()
 
-    moveFez()
-    jumpFez()
-    if collisionBlockDown(fez['leftLegX'],fez['rightLegX'],fez['botY']+5) == False:
-       fallFez()
+    if NETWORK.gameid == USER.player0.value:
+        moveFez()
+        jumpFez()
+        if collisionBlockDown(fez['leftLegX'],fez['rightLegX'],fez['botY']+5) == False:
+            fallFez() 
 
     moveEnemy()
     fallEnemy()
@@ -602,6 +605,11 @@ def jumpFez():
             fezFall = True
             f_time = time.time()
 
+
+def setFezPos(sFez):
+    fez = sFez
+
+
 def checkEnemyFez():
     global STATE
     for i in range(len(m_Enemy)):
@@ -916,16 +924,16 @@ def main():
         elif STATE == "GAME":
 
 
-            opening = pygame.image.load('images/opening.png')
-            opening_rect = opening.get_rect()
+            #opening = pygame.image.load('images/opening.png')
+            #opening_rect = opening.get_rect()
 
-            opening = DISPLAYSURF.blit(opening, opening_rect)
-            pygame.display.flip()
+            #opening = DISPLAYSURF.blit(opening, opening_rect)
+            #pygame.display.flip()
 
-            pygame.time.delay(3000)
+            #pygame.time.delay(3000)
             
 
-                # start game
+            # start game
             g_time = time.time()
             g_time-=1
             initProcess()
