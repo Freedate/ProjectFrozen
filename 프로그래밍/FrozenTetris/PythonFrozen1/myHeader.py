@@ -213,23 +213,24 @@ ENEMY_TYPE = [('resources/graphics/stage1_sky/enemy/enemy_move1.png','resources/
               ('resources/graphics/stage3_parade/enemy/enemy_move1.png','resources/graphics/stage3_parade/enemy/enemy_move2.png','resources/graphics/stage3_parade/enemy/enemy_move3.png','resources/graphics/stage3_parade/enemy/enemy_move4.png')]
 
 # variables
-m_GameStep = STEP.input.value
+m_GameStep = STEP.ready.value
 m_Map = [[0 for col in range(MAP_WIDTH_CNT)] for row in range(MAP_HEIGHT_CNT)]
 m_Enemy = []
 
 initShape = random.choice(list(PIECES.keys()))
 m_fallingTetris = {'shape': initShape,
-                'rotation': random.randint(0, len(PIECES[initShape]) - 1),
+                #'rotation': random.randint(0, len(PIECES[initShape]) - 1),
+                'rotation': 0,
                 'x': int(BOARD_WIDTH_CNT / 2),
                 'y': -2, # start it above the board (i.e. less than 0)
                 'color': random.randint(0, len(BLOCKTYPE[0])-1)}
 
-initShape2 = random.choice(list(PIECES.keys()))
-m_nextTetris = {'shape': initShape2,
-                'rotation': random.randint(0, len(PIECES[initShape2]) - 1),
-                'x': int(BOARD_WIDTH_CNT / 2),
-                'y': -2, # start it above the board (i.e. less than 0)
-                'color': random.randint(0, len(BLOCKTYPE[0])-1)}
+#initShape2 = random.choice(list(PIECES.keys()))
+#m_nextTetris = {'shape': initShape2,
+#                'rotation': random.randint(0, len(PIECES[initShape2]) - 1),
+#                'x': int(BOARD_WIDTH_CNT / 2),
+#                'y': -2, # start it above the board (i.e. less than 0)
+#                'color': random.randint(0, len(BLOCKTYPE[0])-1)}
 
 #### Fez
 FEZ_CAMERASLACK = 90

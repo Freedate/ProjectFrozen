@@ -14,6 +14,18 @@ class ClientChannel(Channel):
 
     def Network_fezPos(self, data):
         self._server.FezPos(data["x"], data["y"], data["jump"])
+    
+    def Network_gameOver(self, data):
+        self._server.GameOver()
+
+    def Network_newTetris(self, data):
+        self._server.NewTetris(data["shape"], data["color"])
+
+    def Network_tetrisMove(self, data):
+        self._server.TetrisMove(data["act"], data["what"], data["value"])
+    
+    def Network_blockOnMap(self, data):
+        self._server.BlockOnMap(data["x"], data["y"])
 
 class FrozenServer(Server):
     channelClass = ClientChannel
@@ -43,7 +55,7 @@ class FrozenServer(Server):
         # 변수 리셋
         self.queue = None
         self.currentIdx = 0
-        exit()
+        #exit()
 
     def PrintStr(self, str):
         print(str)
@@ -54,6 +66,20 @@ class FrozenServer(Server):
  
     def FezPos(self, x, y, jump):
         self.queue.player1.Send({"action": "fezPos", "x":x, "y":y, "jump":jump})
+
+    def GameOver(self):
+        self.queue.player0.Send({"action": "gameOver2"})
+        self.queue.player1.Send({"action": "gameOver2"})
+
+    def NewTetris(self, shape, color):
+        self.queue.player0.Send({"action": "newTetris", "shape":shape, "color":color})
+
+    def TetrisMove(self, act, what, value):
+        self.queue.player0.Send({"action": "movementTetris", "act":act, "what":what, "value":value})
+        #self.queue.player1.Send({"action": "movementTetris", "act":act, "what":what, "value":value})
+
+    def BlockOnMap(self, x, y):
+        self.queue.player0.Send({"action": "blockOnMap", "x":x, "y":y})
 
     def tick(self):
         while True:

@@ -43,8 +43,10 @@ class NetworkListener(ConnectionListener):
         if data["turn"] == "on":
             if data["move"] == "left":
                 fezMoveLeft = True
+                fez["dir"] = "left"
             if data["move"] == "right":
                 fezMoveRight = True
+                fez["dir"] = "right"
             if data["move"] == "up":
                 if fezJump == False and fezFall == False:
                     c_time = g_time
@@ -59,6 +61,32 @@ class NetworkListener(ConnectionListener):
 
     def Network_fezPos(self, data):
         setFezPos(data["x"], data["y"], data["jump"])
+
+    def Network_gameOver2(self, data):
+        global STATE
+        STATE = "GAMEOVER"
+
+    def Network_newTetris(self, data):
+        global m_fallingTetris, m_GameStep
+        m_fallingTetris["shape"] = data["shape"]
+        m_fallingTetris["color"] = data["color"]
+        m_fallingTetris["x"] = int(BOARD_WIDTH_CNT / 2 + MOVECNT)
+        m_fallingTetris["y"] = -2
+        m_fallingTetris["rotation"] = 0
+        m_GameStep = STEP.input.value
+ 
+    def Network_movementTetris(self, data):
+        global m_fallingTetris
+        if data["act"] == "pos":
+            m_fallingTetris[data["what"]] = int(data["value"])
+        elif data["act"] == "rot":
+            m_fallingTetris["rotation"] = int(data["value"])
+
+    def Network_blockOnMap(self, data):
+        global m_Map, m_fallingTetris
+        x, y = data["x"], data["y"]
+        m_Map[y][x].type = m_fallingTetris['color']
+
 
 ## functions
 def initProcess():
@@ -78,17 +106,19 @@ def inputProcess():
         if pygame.key.get_pressed()[pygame.K_DOWN] != 0:
             if checkDown() == True:
                 m_fallingTetris['y'] += 1
-
+                sendServer({"action":"tetrisMove", "act":"pos", "what":"y", "value":m_fallingTetris['y']})
         elif pygame.key.get_pressed()[pygame.K_LEFT] != 0:
             if checkLeftRight(-1) == True:
                 m_fallingTetris['x'] -= 1
-
+                sendServer({"action":"tetrisMove", "act":"pos", "what":"x", "value":m_fallingTetris['x']})
         elif pygame.key.get_pressed()[pygame.K_RIGHT] != 0:
             if checkLeftRight(1) == True:
                 m_fallingTetris['x'] += 1
-    
+            sendServer({"action":"tetrisMove", "act":"pos", "what":"x", "value":m_fallingTetris['x']})
         elif pygame.key.get_pressed()[pygame.K_SPACE] != 0:
             fullDown()
+            sendServer({"action":"tetrisMove", "act":"pos", "what":"y", "value":m_fallingTetris['y']})
+
 
     for event in pygame.event.get():
         if NETWORK.gameid == USER.player1.value:
@@ -98,6 +128,8 @@ def inputProcess():
                     m_fallingTetris['rotation'] = 0
                 else:
                     m_fallingTetris['rotation'] += 1
+                sendServer({"action":"tetrisMove", "act":"rot", "what":"", "value":m_fallingTetris['rotation']})
+                
         # fez move
         if NETWORK.gameid == USER.player0.value:
             if event.type == KEYDOWN:
@@ -158,7 +190,7 @@ def dataProcess():
         imgSprite()
         enemyImage()
 
-    if NETWORK.gameid == USER.player0.value:
+    if NETWORK.gameid == USER.player0.value:    # 페즈의 움직임
         moveFez()
         jumpFez()
         if collisionBlockDown(fez['leftLegX'],fez['rightLegX'],fez['botY']+5) == False:
@@ -169,24 +201,25 @@ def dataProcess():
 
     checkEnemyFez()
     checkGameover()
-    # tetris
-    if curTime-tetris_time >= 0.3:
-        tetris_time = time.time()
-        if m_GameStep == STEP.ready.value:
-            m_fallingTetris = newTetris()
-            if m_fallingTetris != None:
-                m_newTetris = newTetris()
-            m_GameStep = STEP.input.value
-        elif m_GameStep == STEP.input.value:
-            if isBlocked():
-                setOnMap()
-                m_GameStep = STEP.ready.value
-            else:
-                m_fallingTetris['y'] += 1
 
-        elif m_GameStep == STEP.gameover.value:
-            m_GameStep = STEP.ready.value
-    SCORE += SCREEN_SPEED
+    if NETWORK.bStart and NETWORK.gameid == USER.player1.value:    # tetris
+        if curTime-tetris_time >= 0.3:
+            tetris_time = time.time()
+            if m_GameStep == STEP.ready.value:
+                m_fallingTetris = newTetris()
+                m_GameStep = STEP.input.value
+            elif m_GameStep == STEP.input.value:
+                if isBlocked():
+                    setOnMap()
+                    m_GameStep = STEP.ready.value
+                else:
+                    m_fallingTetris['y'] += 1
+                    sendServer({"action":"tetrisMove", "act":"pos", "what":"y", "value":m_fallingTetris['y']})
+
+            elif m_GameStep == STEP.gameover.value:
+                m_GameStep = STEP.ready.value
+    
+                SCORE += SCREEN_SPEED
     return
 
 def renderProcess():
@@ -206,13 +239,14 @@ def releaseProcess():
     return
 
 def mainLoop():
-    global g_time
+    global g_time, STATE
 
     curTime = time.time()
     inputProcess()
-    if curTime - g_time >= 0.0001:
+    if curTime - g_time >= 0.05:
         dataProcess()
-        sendServer({"action":"fezPos", "x":fez["topX"], "y":fez["topY"], "jump":fez["jump"]})
+        if NETWORK.bStart and NETWORK.gameid == USER.player0.value and STATE != "GAMEOVER":
+            sendServer({"action":"fezPos", "x":fez["topX"], "y":fez["topY"], "jump":fez["jump"]})
         g_time = time.time()
     renderProcess()
 
@@ -379,13 +413,15 @@ def moveComponents():
 
 
 def newTetris():
-    global MOVECNT
+    global MOVECNT, NETWORK
     shape = random.choice(list(PIECES.keys()))
+    color = random.randint(0, len(BLOCKTYPE[0])-1)
     newBox = {'shape': shape,
-                'rotation': random.randint(0, len(PIECES[shape]) - 1),
+                'rotation': 0,
                 'x': int(BOARD_WIDTH_CNT / 2 + MOVECNT),
-                'y': -2, # start it above the board (i.e. less than 0)
-                'color': random.randint(0, len(BLOCKTYPE[fez['stage']])-1)}
+                'y': -2,
+                'color': color}
+    sendServer({"action":"newTetris", "shape":shape, "color":color})
     return newBox
 
 def isBlocked():
@@ -405,6 +441,7 @@ def setOnMap():
             if PIECES[m_fallingTetris['shape']][m_fallingTetris['rotation']][y][x] != BLANK:
                 map_X, map_Y = convertBlockIdxToMapIdx(x,y,m_fallingTetris)
                 m_Map[map_Y][map_X].type = m_fallingTetris['color']
+                sendServer({"action":"blockOnMap", "x":map_X, "y":map_Y})
 
 def convertBlockIdxToMapIdx(x, y, tetris):
     # 테트리스 블럭 인덱스를 맵의 인덱스로 변환
@@ -623,17 +660,12 @@ def checkEnemyFez():
         eRect = pygame.Rect((m_Enemy[i].x,m_Enemy[i].y,m_Enemy[i].width,m_Enemy[i].height))
         fez['rect'] = pygame.Rect((fez['topX'],fez['topY'],fez['width'],fez['height']))
         if eRect.colliderect(fez['rect']):
-            print("게임종료")
-            STATE = "GAMEOVER"
+            sendServer({"action":"gameOver"})
+
 def checkGameover():
     global STATE
-    if fez['topX'] < TETRIS_LEFT_GAP :
-        print("게임 종료")
-        STATE = "GAMEOVER"
-
-    if fez['topY']>460:
-        print("게임 종료")
-        STATE = "GAMEOVER"
+    if fez['topX'] < TETRIS_LEFT_GAP or fez['topY'] > 460:
+        sendServer({"action":"gameOver"})
 
 ### ENEMY
 def moveEnemy():
@@ -736,12 +768,17 @@ def drawBox(y,x,color):
 def drawMovingTetris():
     for x in range(TETRIS_WIDTH_CNT):
         for y in range(TETRIS_HEIGHT_CNT):
-            if PIECES[m_fallingTetris['shape']][m_fallingTetris['rotation']][y][x] != BLANK:
-                map_Xi, map_Yi = convertBlockIdxToMapIdx(x,y,m_fallingTetris)
-                #map_X, map_Y = convertMapIdxToPixel(map_X,map_Y)
-                map_X = m_Map[map_Yi][map_Xi].x
-                map_Y = m_Map[map_Yi][map_Xi].y
-                drawBox(map_Y,map_X,m_fallingTetris['color'])
+            try:
+                if PIECES[m_fallingTetris['shape']][m_fallingTetris['rotation']][y][x] != BLANK:
+                    map_Xi, map_Yi = convertBlockIdxToMapIdx(x,y,m_fallingTetris)
+                    #map_X, map_Y = convertMapIdxToPixel(map_X,map_Y)
+                    map_X = m_Map[map_Yi][map_Xi].x
+                    map_Y = m_Map[map_Yi][map_Xi].y
+                    drawBox(map_Y,map_X,m_fallingTetris['color'])
+            except:
+                error = sys.exc_info()[0]
+                print("error]] line 770", error)
+                print(m_fallingTetris['shape'], " ", m_fallingTetris['rotation'])
 
 def drawFez():
     fez['rect'] = pygame.Rect((fez['topX'],fez['topY'],fez['width'],fez['height']))
@@ -946,6 +983,7 @@ def main():
                     break
         elif STATE == "GAMEOVER":
             Gameover()
+
 
 ## function calls
 main()
