@@ -28,7 +28,7 @@ class ClientChannel(Channel):
         self._server.BlockOnMap(data["x"], data["y"])
 
     def Network_moveComponents(self):
-        self._server.MoveComponents()
+        self._server.MoveComponents(self)
 
 class FrozenServer(Server):
     channelClass = ClientChannel

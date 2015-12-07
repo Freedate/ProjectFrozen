@@ -181,10 +181,11 @@ def dataProcess():
     # 2인접속시 실행 
     #if NETWORK.bStart:
     #   moveComponents()
-    if NETWORK.gameid == USER.player0.value:
-        #플레이어0만 자기 시간으로 moveComponents
-        moveComponents()
-        sendServer({"action":"moveComponents"})
+    if NETWORK.bStart:
+        if NETWORK.gameid == USER.player0.value:
+            #플레이어0만 자기 시간으로 moveComponents
+            moveComponents()
+            sendServer({"action":"moveComponents"})
 
     # fez
     if curTime-fez_time >= 0.1:
