@@ -202,6 +202,15 @@ class myEnemy:
         self.fall = False
         self.bPop = False
 
+class myCoin:
+    def __init__(self,x,y,img,width,height):
+        self.x = x
+        self.y = y
+        self.img = img
+        self.width = width
+        self.height = height
+        self.bPop = False
+
 class USER(Enum):
     player0 = 0
     player1 = 1
@@ -214,10 +223,14 @@ ENEMY_TYPE = [('resources/graphics/stage1_sky/enemy/enemy_move1.png','resources/
               ('resources/graphics/stage2_desert/enemy/enemy_move1.png','resources/graphics/stage2_desert/enemy/enemy_move2.png','resources/graphics/stage2_desert/enemy/enemy_move3.png','resources/graphics/stage2_desert/enemy/enemy_move4.png'),
               ('resources/graphics/stage3_parade/enemy/enemy_move1.png','resources/graphics/stage3_parade/enemy/enemy_move2.png','resources/graphics/stage3_parade/enemy/enemy_move3.png','resources/graphics/stage3_parade/enemy/enemy_move4.png')]
 
+FEZ_COIN_WIDTH = 16
+FEZ_COIN_HEIGHT = 16
+COIN_TYPE = [('images/coin_1.png','images/coin_2.png','images/coin_3.png','images/coin_4.png'),('images/coin_1.png','images/coin_2.png','images/coin_3.png','images/coin_4.png')]
 # variables
 m_GameStep = STEP.ready.value
 m_Map = [[0 for col in range(MAP_WIDTH_CNT)] for row in range(MAP_HEIGHT_CNT)]
 m_Enemy = []
+m_Coin = []
 
 initShape = random.choice(list(PIECES.keys()))
 m_fallingTetris = {'shape': initShape,

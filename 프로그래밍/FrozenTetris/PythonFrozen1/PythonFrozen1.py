@@ -86,13 +86,16 @@ class NetworkListener(ConnectionListener):
         global m_Map, m_fallingTetris
         x, y = data["x"], data["y"]
         m_Map[y][x].type = m_fallingTetris['color']
+        
+    def Network_moveComponents(self):
+        moveComponents()
 
 
 ## functions
 def initProcess():
     global SCORE
     # initMap("map/testmap.txt")
-    initMap("map/stage2/stage.txt")
+    initMap("map/stage1/stage.txt")
     initBackImg(BACK_WIDTH_STAGE2,BACK_HEIGHT_STAGE2)
     SCORE = 0
     return     
@@ -176,14 +179,19 @@ def dataProcess():
     curTime = time.time()
 
     # 2인접속시 실행 
-    if NETWORK.bStart:
-       moveComponents()
+    #if NETWORK.bStart:
+    #   moveComponents()
+    if NETWORK.gameid == USER.player0.value:
+        #플레이어0만 자기 시간으로 moveComponents
+        moveComponents()
+        sendServer({"action":"moveComponents"})
 
     # fez
     if curTime-fez_time >= 0.1:
         fez_time = time.time()
         imgSprite()
         enemyImage()
+        coinImage()
         if NETWORK.bStart:
             SCORE += SCREEN_SPEED
 
@@ -199,6 +207,10 @@ def dataProcess():
 
         checkEnemyFez()
         checkGameover()
+
+        if coinCheck() > 0:
+            coinPop()
+            i=0     # 여기서 스코어 증가
 
         if NETWORK.gameid == USER.player1.value:    # tetris
             if curTime-tetris_time >= 0.3:
@@ -225,6 +237,7 @@ def renderProcess():
     drawMovingTetris()
     drawBoard()
     drawFez()
+    drawCoin()
     drawEnemy()
     drawBound()
     drawScore()
@@ -284,6 +297,10 @@ def initMap(txt):
                 print(line[j])
                 initEnemy(j,i)
                 m_Map[i][j].type = BLANK
+            elif line[j] == '^':
+                print(line[j])
+                initCoin(j,i)
+                m_Map[i][j].type = BLANK
             elif line[j] != BLANK and line[j] != '\n':
                 m_Map[i][j].type = int(line[j])
             elif line[j] != '\n':
@@ -311,6 +328,12 @@ def initEnemy(x,y):
         height = FEZ_ENEMY_HEIGHT2
     m_Enemy.append(myEnemy(mapX, mapY, 5, 'left', random.randint(0,3), width, height))
 
+def initCoin(x,y):
+    mapX = TETRIS_LEFT_GAP+x*BOXSIZE
+    mapY = TETRIS_TOP_GAP+y*BOXSIZE
+    width = FEZ_COIN_WIDTH
+    height =   FEZ_COIN_HEIGHT
+    m_Coin.append(myCoin(mapX, mapY, random.randint(0,2), width, height))
 # input
 
 def checkDown():
@@ -398,6 +421,10 @@ def resetMap():
                 print(line[idx])
                 initEnemy(j,i)
                 m_Map[i][j].type = BLANK
+            elif line[idx] == '^':
+                print(line[idx])
+                initCoin(j,i)
+                m_Map[i][j].type = BLANK
             elif line[idx] != BLANK and line[idx] != '\n':
                 m_Map[i][j].type = int(line[idx])
             elif line[idx] != '\n':
@@ -423,6 +450,8 @@ def moveComponents():
 
     for i in range(len(m_Enemy)):
         m_Enemy[i].x -= SCREEN_SPEED
+    for i in range(len(m_Coin)):
+        m_Coin[i].x -= SCREEN_SPEED
 
     global MOVEBLOCK, MOVECNT
     MOVEBLOCK += SCREEN_SPEED
@@ -696,17 +725,19 @@ def moveEnemy():
     for i in range(len(m_Enemy)):
         if m_Enemy[i].dir == 'left':
             mapx,mapy = convertPixelToMapIdx(m_Enemy[i].x-m_Enemy[i].speed,m_Enemy[i].y)
-            if m_Map[mapy][mapx].type == BLANK and checkLRfallingTetris(mapx,mapy)==False:
+            mapx2,mapy2 = convertPixelToMapIdx(m_Enemy[i].x-m_Enemy[i].speed,m_Enemy[i].y+14)
+            if (m_Map[mapy][mapx].type == BLANK and checkLRfallingTetris(mapx,mapy)==False) or (m_Map[mapy2][mapx2].type == BLANK and checkLRfallingTetris(mapx2,mapy2)==False):
                 m_Enemy[i].x -= m_Enemy[i].speed
             else:
                 m_Enemy[i].dir = 'right'
         elif m_Enemy[i].dir == 'right':
             mapx,mapy = convertPixelToMapIdx(m_Enemy[i].x+m_Enemy[i].width+m_Enemy[i].speed,m_Enemy[i].y)
-            if m_Map[mapy][mapx].type == BLANK and checkLRfallingTetris(mapx,mapy)==False:
+            mapx2,mapy2 = convertPixelToMapIdx(m_Enemy[i].x+m_Enemy[i].width+m_Enemy[i].speed,m_Enemy[i].y+14)
+            if (m_Map[mapy][mapx].type == BLANK and checkLRfallingTetris(mapx,mapy)==False) or (m_Map[mapy2][mapx2].type == BLANK and checkLRfallingTetris(mapx2,mapy2)==False):
                 m_Enemy[i].x += m_Enemy[i].speed
             else:
                 m_Enemy[i].dir = 'left'
-        if m_Enemy[i].x < 0:
+        if m_Enemy[i].x < 0 or m_Enemy[i].y > TETRIS_TOP_GAP+BOXSIZE*MAP_HEIGHT_CNT:
             cnt+=1
             m_Enemy[i].bPop = True
     for i in range(cnt):
@@ -760,6 +791,28 @@ def enemyImage():
             m_Enemy[i].img += 1
         else:
             m_Enemy[i].img = 0
+### COIN
+
+def coinImage():
+    for i in range(len(m_Coin)):
+        if m_Coin[i].img < 3:
+            m_Coin[i].img += 1
+        else:
+            m_Coin[i].img = 0
+
+def coinCheck():
+    cnt=0
+    for i in range(len(m_Coin)):
+        cRect = pygame.Rect((m_Coin[i].x,m_Coin[i].y,m_Coin[i].width,m_Coin[i].height))
+        if cRect.colliderect(fez['rect']):
+            m_Coin[i].bPop = True
+            cnt+=1
+    return cnt
+
+def coinPop():
+    for i in range(len(m_Coin)):
+        if m_Coin[i].bPop:
+            m_Coin.pop(i)
 
 # render
 def drawBackGround():
@@ -814,6 +867,13 @@ def drawEnemy():
         if m_Enemy[i].dir == 'right':
             enemyImg = pygame.transform.flip(enemyImg,True,False)
         DISPLAYSURF.blit(enemyImg,eRect)
+
+def drawCoin():
+    for i in range(len(m_Coin)):
+        coinImg = pygame.image.load(COIN_TYPE[fez['stage']][m_Coin[i].img])
+        cRect = pygame.Rect((m_Coin[i].x,m_Coin[i].y,m_Coin[i].width,m_Coin[i].height))
+        DISPLAYSURF.blit(coinImg,cRect)
+
 def drawScore():
     global DISPLAYSURF
     font = pygame.font.Font(None, 40)

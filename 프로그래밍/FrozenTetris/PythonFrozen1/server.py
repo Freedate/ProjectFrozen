@@ -27,6 +27,9 @@ class ClientChannel(Channel):
     def Network_blockOnMap(self, data):
         self._server.BlockOnMap(data["x"], data["y"])
 
+    def Network_moveComponents(self):
+        self._server.MoveComponents()
+
 class FrozenServer(Server):
     channelClass = ClientChannel
 
@@ -80,6 +83,9 @@ class FrozenServer(Server):
 
     def BlockOnMap(self, x, y):
         self.queue.player0.Send({"action": "blockOnMap", "x":x, "y":y})
+    
+    def MoveComponents(self):
+        self.queue.player1.Send({"action":"moveComponents"})
 
     def tick(self):
         while True:
