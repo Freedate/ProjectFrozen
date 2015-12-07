@@ -17,7 +17,7 @@ class NetworkListener(ConnectionListener):
         #        host,port = address.split(":")
             # 강제로 로컬:8000으로 접속
             # host, port = "localhost", 8000
-            host, port = "203.252.182.154", 8000
+            host, port = "211.201.219.206", 8000
             self.Connect((host, int(port)))
             print("Chat client started")
 
@@ -364,21 +364,47 @@ def fullDown():
         m_fallingTetris['y'] += 1
         
 # data
+mapCnt=0;
 def resetMap():
+    global mapCnt
+
     # 사라진 맵 pop
     for i in range(MAP_HEIGHT_CNT):
         for j in range(MAP_BOARD_GAP):
             m_Map[i].pop(0)
     
+    fp = open(NEW_MAP[fez['stage']][mapCnt],'r')
+    if mapCnt < 9:
+        mapCnt += 1
+    else:
+        mapCnt = 0
     # new 맵 extend
     for i in range(MAP_HEIGHT_CNT):
         m_Map[i].extend([0,0,0,0])
+
     for i in range(MAP_WIDTH_CNT-MAP_BOARD_GAP,MAP_WIDTH_CNT,1):
         for j in range(MAP_HEIGHT_CNT):
-            if j >= MAP_HEIGHT_CNT-2:
-                m_Map[j][i] = myMap(2,TETRIS_LEFT_GAP+i*BOXSIZE,TETRIS_TOP_GAP+j*BOXSIZE,0)
-            else:
-                m_Map[j][i] = myMap(BLANK,TETRIS_LEFT_GAP+i*BOXSIZE,TETRIS_TOP_GAP+j*BOXSIZE,0)
+            m_Map[j][i] = myMap(BLANK,0,0,0)
+
+    for i in range(MAP_HEIGHT_CNT):
+        line = fp.readline()
+        idx=0
+        for j in range(MAP_WIDTH_CNT-MAP_BOARD_GAP,MAP_WIDTH_CNT,1):
+            m_Map[i][j].x = TETRIS_LEFT_GAP+j*BOXSIZE
+            m_Map[i][j].y = TETRIS_TOP_GAP+i*BOXSIZE
+            # idx = j-(MAP_WIDTH_CNT-MAP_BOARD_GAP)
+            print(idx,end=" ")
+            if line[idx] == '*':
+                print(line[idx])
+                initEnemy(j,i)
+                m_Map[i][j].type = BLANK
+            elif line[idx] != BLANK and line[idx] != '\n':
+                m_Map[i][j].type = int(line[idx])
+            elif line[idx] != '\n':
+                m_Map[i][j].type = line[idx]
+            idx += 1
+    
+
 
 def moveComponents():
     for x in range(MAP_WIDTH_CNT):

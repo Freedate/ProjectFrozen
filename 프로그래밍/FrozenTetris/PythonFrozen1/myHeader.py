@@ -58,6 +58,9 @@ BACK_HEIGHT_STAGE2 = 210
 BACK_WIDTH_STAGE2 = 1536
 BACK_HEIGHT_STAGE2 = 448
 
+NEW_MAP = [('map/stage1/stage_new_1.txt','map/stage1/stage_new_2.txt','map/stage1/stage_new_3.txt','map/stage1/stage_new_4.txt','map/stage1/stage_new_5.txt','map/stage1/stage_new_6.txt','map/stage1/stage_new_7.txt','map/stage1/stage_new_8.txt','map/stage1/stage_new_9.txt','map/stage1/stage_new_10.txt'),
+           ('map/stage2/stage_new_1.txt','map/stage2/stage_new_2.txt','map/stage2/stage_new_3.txt','map/stage2/stage_new_4.txt','map/stage2/stage_new_5.txt','map/stage2/stage_new_6.txt','map/stage2/stage_new_7.txt','map/stage2/stage_new_8.txt','map/stage2/stage_new_9.txt','map/stage2/stage_new_10.txt')]
+
 BORDERCOLOR = LIGHTBLUE
 BGCOLOR = BLACK
 TEXTCOLOR = WHITE
@@ -271,7 +274,7 @@ FEZ_IMG_JUMP_LEFT4 = pygame.transform.flip(FEZ_IMG_JUMP_RIGHT4,True,False)
 fez = {'img':FEZ_IMG_RIGHT,'dir':'right','width':FEZ_WIDTH_SIZE,'height':FEZ_HEIGHT_SIZE,
        'topX':FEZ_START_X,'topY':FEZ_START_Y,
        'leftLegX':FEZ_START_X+FEZ_LEG_LEFT_GAP,'rightLegX':FEZ_START_X+FEZ_WIDTH_SIZE-FEZ_LEG_RIGHT_GAP,
-       'botY':FEZ_START_Y+FEZ_HEIGHT_SIZE,'jump':9999,'speed':FEZ_SPEED,'stage':1}
+       'botY':FEZ_START_Y+FEZ_HEIGHT_SIZE,'jump':9999,'speed':FEZ_SPEED,'stage':0}
 
 fezMoveLeft = False
 fezMoveRight = False
