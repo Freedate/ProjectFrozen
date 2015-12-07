@@ -176,8 +176,8 @@ def dataProcess():
     curTime = time.time()
 
     # 2인접속시 실행 
-    #if NETWORK.bStart:
-    #   moveComponents()
+    if NETWORK.bStart:
+       moveComponents()
 
     # fez
     if curTime-fez_time >= 0.1:
