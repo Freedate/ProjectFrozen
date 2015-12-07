@@ -57,8 +57,8 @@ class NetworkListener(ConnectionListener):
             if data["move"] == "up":
                 fezJump = False
 
-        setFezPos(data["fez"])
-
+    def Network_fezPos(self, data):
+        setFezPos(data["x"], data["y"], data["jump"])
 
 ## functions
 def initProcess():
@@ -106,31 +106,31 @@ def inputProcess():
                         global c_time
                         c_time = g_time
                         fezJump = True
-                    sendServer({"action":"fezMove", "move":"up", "turn":"on", "fez":"fez"})
+                    sendServer({"action":"fezMove", "move":"up", "turn":"on"})
                 if event.key == K_a:
                     #fezMoveRight = False
                     fezMoveLeft = True
                     if fez['dir'] != 'left':
                         fez['dir'] = 'left'
                         fez['img'] = FEZ_IMG_LEFT
-                    sendServer({"action":"fezMove", "move":"left", "turn":"on", "fez":"fez"})
+                    sendServer({"action":"fezMove", "move":"left", "turn":"on"})
                 if event.key == K_d:
                     #fezMoveLeft = False
                     fezMoveRight = True
                     if fez['dir'] != 'right':
                         fez['dir'] = 'right'
                         fez['img'] = FEZ_IMG_RIGHT
-                    sendServer({"action":"fezMove", "move":"right", "turn":"on", "fez":"fez"})
+                    sendServer({"action":"fezMove", "move":"right", "turn":"on"})
             elif event.type == KEYUP:
                 if event.key == K_a:
                     fezMoveLeft = False
-                    sendServer({"action":"fezMove", "move":"left", "turn":"off", "fez":"fez"})
+                    sendServer({"action":"fezMove", "move":"left", "turn":"off"})
                 if event.key == K_d:
                     fezMoveRight = False
-                    sendServer({"action":"fezMove", "move":"right", "turn":"off", "fez":"fez"})
+                    sendServer({"action":"fezMove", "move":"right", "turn":"off"})
                 if event.key == K_w:
                     fezJump = False
-                    sendServer({"action":"fezMove", "move":"up", "turn":"off", "fez":"fez"})
+                    sendServer({"action":"fezMove", "move":"up", "turn":"off"})
     return
 
 fez_time = time.time()
@@ -207,10 +207,12 @@ def releaseProcess():
 
 def mainLoop():
     global g_time
+
     curTime = time.time()
     inputProcess()
     if curTime - g_time >= 0.0001:
         dataProcess()
+        sendServer({"action":"fezPos", "x":fez["topX"], "y":fez["topY"], "jump":fez["jump"]})
         g_time = time.time()
     renderProcess()
 
@@ -606,9 +608,13 @@ def jumpFez():
             f_time = time.time()
 
 
-def setFezPos(sFez):
-    print(sFez)
-    #fez = sFez
+def setFezPos(x, y, jump):
+    fez["topX"], fez["topY"] = x, y
+    fez["jump"] = jump
+
+    fez["leftLegX"] = fez["topX"] + FEZ_LEG_RIGHT_GAP
+    fez["rightLegX"] = fez['topX'] + (FEZ_WIDTH_SIZE-FEZ_LEG_LEFT_GAP)
+    fez["botY"] = fez["topY"] + FEZ_HEIGHT_SIZE
 
 
 def checkEnemyFez():
@@ -915,28 +921,21 @@ def main():
     #while checkForKeyPress() == None:
     #    pygame.display.update()
     #    FPSCLOCK.tick()
-
-
+    
     # start game
     while True:
         if STATE == "TITLE":
             title()
-           
         elif STATE == "GAME":
-
-
             #opening = pygame.image.load('images/opening.png')
             #opening_rect = opening.get_rect()
-
             #opening = DISPLAYSURF.blit(opening, opening_rect)
             #pygame.display.flip()
-
             #pygame.time.delay(3000)
-            
 
             # start game
             g_time = time.time()
-            g_time-=1
+            g_time -= 1
             initProcess()
             NETWORK = NetworkListener()
             while True:
@@ -947,9 +946,6 @@ def main():
                     break
         elif STATE == "GAMEOVER":
             Gameover()
-            
-
-
 
 ## function calls
 main()

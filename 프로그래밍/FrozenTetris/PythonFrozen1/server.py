@@ -10,7 +10,10 @@ class ClientChannel(Channel):
         self._server.DelPlayer(self)
 
     def Network_fezMove(self, data):
-        self._server.FezMove(data["move"], data["turn"], data["fez"])
+        self._server.FezMove(data["move"], data["turn"])
+
+    def Network_fezPos(self, data):
+        self._server.FezPos(data["x"], data["y"], data["jump"])
 
 class FrozenServer(Server):
     channelClass = ClientChannel
@@ -45,9 +48,12 @@ class FrozenServer(Server):
     def PrintStr(self, str):
         print(str)
 
-    def FezMove(self, move, turn, fez):
+    def FezMove(self, move, turn):
         # player0의 움직임을 player1에게 전달
-        self.queue.player1.Send({"action": "fezMove", "move":move, "turn":turn, "fez":fez})
+        self.queue.player1.Send({"action": "fezMove", "move":move, "turn":turn})
+ 
+    def FezPos(self, x, y, jump):
+        self.queue.player1.Send({"action": "fezPos", "x":x, "y":y, "jump":jump})
 
     def tick(self):
         while True:
