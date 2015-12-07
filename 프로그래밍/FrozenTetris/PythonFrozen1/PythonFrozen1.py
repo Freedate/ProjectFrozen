@@ -106,31 +106,31 @@ def inputProcess():
                         global c_time
                         c_time = g_time
                         fezJump = True
-                    sendServer({"action":"fezMove", "move":"up", "turn":"on", "fez":fez})
+                    sendServer({"action":"fezMove", "move":"up", "turn":"on", "fez":"fez"})
                 if event.key == K_a:
                     #fezMoveRight = False
                     fezMoveLeft = True
                     if fez['dir'] != 'left':
                         fez['dir'] = 'left'
                         fez['img'] = FEZ_IMG_LEFT
-                    sendServer({"action":"fezMove", "move":"left", "turn":"on", "fez":fez})
+                    sendServer({"action":"fezMove", "move":"left", "turn":"on", "fez":"fez"})
                 if event.key == K_d:
                     #fezMoveLeft = False
                     fezMoveRight = True
                     if fez['dir'] != 'right':
                         fez['dir'] = 'right'
                         fez['img'] = FEZ_IMG_RIGHT
-                    sendServer({"action":"fezMove", "move":"right", "turn":"on", "fez":fez})
+                    sendServer({"action":"fezMove", "move":"right", "turn":"on", "fez":"fez"})
             elif event.type == KEYUP:
                 if event.key == K_a:
                     fezMoveLeft = False
-                    sendServer({"action":"fezMove", "move":"left", "turn":"off", "fez":fez})
+                    sendServer({"action":"fezMove", "move":"left", "turn":"off", "fez":"fez"})
                 if event.key == K_d:
                     fezMoveRight = False
-                    sendServer({"action":"fezMove", "move":"right", "turn":"off", "fez":fez})
+                    sendServer({"action":"fezMove", "move":"right", "turn":"off", "fez":"fez"})
                 if event.key == K_w:
                     fezJump = False
-                    sendServer({"action":"fezMove", "move":"up", "turn":"off", "fez":fez})
+                    sendServer({"action":"fezMove", "move":"up", "turn":"off", "fez":"fez"})
     return
 
 fez_time = time.time()
@@ -607,7 +607,8 @@ def jumpFez():
 
 
 def setFezPos(sFez):
-    fez = sFez
+    print(sFez)
+    #fez = sFez
 
 
 def checkEnemyFez():
