@@ -10,7 +10,7 @@ WINDOWHEIGHT = 540
 SCREEN_SPEED = 1
 MOVEBLOCK = 0
 MOVECNT = 0
-STATE = "GAME"
+STATE = "TITLE"
 SCORE = 0
 
 ## tetris
@@ -32,10 +32,10 @@ GRAY        = (185, 185, 185)
 BLACK       = (  0,   0,   0)
 RED         = (155,   0,   0)
 LIGHTRED    = (175,  20,  20)
-GREEN       = (  0, 155,   0)
+GREEN       = (  0, 255,   0)
 LIGHTGREEN  = ( 20, 175,  20)
 BLUE        = (  0,   0, 155)
-LIGHTBLUE   = ( 20,  20, 175)
+LIGHTBLUE   = ( 90,  170, 200)
 YELLOW      = (155, 155,   0)
 LIGHTYELLOW = (175, 175,  20)
 COLORS      = (     BLUE,      GREEN,      RED,      YELLOW)
@@ -289,6 +289,9 @@ fez = {'img':FEZ_IMG_RIGHT,'dir':'right','width':FEZ_WIDTH_SIZE,'height':FEZ_HEI
        'leftLegX':FEZ_START_X+FEZ_LEG_LEFT_GAP,'rightLegX':FEZ_START_X+FEZ_WIDTH_SIZE-FEZ_LEG_RIGHT_GAP,
        'botY':FEZ_START_Y+FEZ_HEIGHT_SIZE,'jump':9999,'speed':FEZ_SPEED,'stage':0}
 
+fez['rect'] = pygame.Rect((fez['topX'],fez['topY'],fez['width'],fez['height']))
+
+
 fezMoveLeft = False
 fezMoveRight = False
 fezJump = False
@@ -297,3 +300,7 @@ fezFall = False
 g_time = time.time()
 f_time = time.time()
 c_time = time.time()
+
+title_cloud_x = 0
+title_cloud_gap = 0
+b_title_cloud = False

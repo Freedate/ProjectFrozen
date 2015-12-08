@@ -5,9 +5,13 @@ from time import sleep
 class ClientChannel(Channel):
     def __init__(self, *args, **kwargs):
         Channel.__init__(self, *args, **kwargs)
+        self.gameid = "0"
+
+    def Network_userInfo(self, data):
+        self.gameid = data["gameid"]
 
     def Close(self):
-        self._server.DelPlayer(self)
+        self._server.DelPlayer(self, self.gameid)
 
     def Network_fezMove(self, data):
         self._server.FezMove(data["move"], data["turn"])
@@ -53,12 +57,15 @@ class FrozenServer(Server):
             self.queue.player0.Send({"action": "gameStart", "gameid":0})    # fez
             self.queue.player1.Send({"action": "gameStart", "gameid":1})    # block
 
-    def DelPlayer(self, player):
-        print("Deleting Player" + str(player.addr))
+    def DelPlayer(self, player, id):
+        print("Deleting player" + str(id) + " " + str(player.addr))
         # 변수 리셋
-        self.queue = None
-        self.currentIdx = 0
-        #exit()
+        self.currentIdx = 1
+        if int(id) == 0:
+            self.queue.player0 = self.queue.player1
+        self.queue.player0.Send({"action":"outUser"})
+        self.queue.player1 = None
+
 
     def PrintStr(self, str):
         print(str)

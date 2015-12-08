@@ -38,6 +38,8 @@ class NetworkListener(ConnectionListener):
     def Network_gameStart(self, data):
         self.bStart = True
         self.gameid = data["gameid"]
+        sendServer({"action":"userInfo", "gameid":data["gameid"]})
+
     def Network_fezMove(self, data):
         global fezMoveLeft, fezMoveRight, fezJump, fezFall, c_time
         if data["turn"] == "on":
@@ -89,6 +91,12 @@ class NetworkListener(ConnectionListener):
         
     def Network_moveComponents(self, data):
         moveComponents()
+
+    def Network_outUser(self, data):
+        global NETWORK
+        NETWORK.bStart = False
+        self.gameid = "0"
+        sendServer({"action":"userInfo", "gameid":self.gameid})
 
 
 ## functions
@@ -181,7 +189,7 @@ def dataProcess():
     # 2인접속시 실행 
     #if NETWORK.bStart:
     #   moveComponents()
-    if NETWORK.bStart:
+    if STATE=="GAME" and NETWORK.bStart:
         if NETWORK.gameid == USER.player0.value:
             #플레이어0만 자기 시간으로 moveComponents
             moveComponents()
@@ -193,7 +201,7 @@ def dataProcess():
         imgSprite()
         enemyImage()
         coinImage()
-        if NETWORK.bStart:
+        if STATE=="GAME" and NETWORK.bStart:
             SCORE += SCREEN_SPEED
 
     if NETWORK.gameid == USER.player0.value:    # 페즈의 움직임
@@ -202,7 +210,7 @@ def dataProcess():
         if collisionBlockDown(fez['leftLegX'],fez['rightLegX'],fez['botY']+5) == False:
             fallFez() 
 
-    if NETWORK.bStart:
+    if STATE=="GAME" and NETWORK.bStart:
         moveEnemy()
         fallEnemy()
 
@@ -233,7 +241,7 @@ def dataProcess():
     return
 
 def renderProcess():
-    DISPLAYSURF.fill(BLACK)
+    DISPLAYSURF.fill(LIGHTBLUE)
     drawBackGround()
     drawMovingTetris()
     drawBoard()
@@ -256,7 +264,7 @@ def mainLoop():
     inputProcess()
     if curTime - g_time >= 0.03:
         dataProcess()
-        if NETWORK.bStart and NETWORK.gameid == USER.player0.value and STATE != "GAMEOVER":
+        if STATE=="GAME" and NETWORK.bStart and NETWORK.gameid == USER.player0.value and STATE != "GAMEOVER":
             sendServer({"action":"fezPos", "x":fez["topX"], "y":fez["topY"], "jump":fez["jump"]})
         g_time = time.time()
     renderProcess()
@@ -802,9 +810,9 @@ def coinImage():
             m_Coin[i].img = 0
 
 def coinCheck():
-    cnt=0
+    cnt = 0
     for i in range(len(m_Coin)):
-        cRect = pygame.Rect((m_Coin[i].x,m_Coin[i].y,m_Coin[i].width,m_Coin[i].height))
+        cRect = pygame.Rect((m_Coin[i].x, m_Coin[i].y, m_Coin[i].width, m_Coin[i].height))
         if cRect.colliderect(fez['rect']):
             m_Coin[i].bPop = True
             cnt+=1
@@ -814,6 +822,7 @@ def coinPop():
     for i in range(len(m_Coin)):
         if m_Coin[i].bPop:
             m_Coin.pop(i)
+            break;
 
 # render
 def drawBackGround():
@@ -829,9 +838,14 @@ def drawBoard():
     pygame.draw.rect(DISPLAYSURF, BORDERCOLOR, (TETRIS_LEFT_GAP, TETRIS_TOP_GAP, (BOARD_WIDTH_CNT * BOXSIZE) + 8, (BOARD_HEIGHT_CNT * BOXSIZE) + 8), 5)
 
 def drawBound():
-    pygame.draw.rect(DISPLAYSURF, BLACK, (0,TETRIS_TOP_GAP-5,TETRIS_LEFT_GAP-2,BOARD_HEIGHT_CNT*BOXSIZE+30))
-    # pygame.draw.rect(DISPLAYSURF, BLACK, (TETRIS_LEFT_GAP+BOARD_WIDTH_CNT*BOXSIZE+5,TETRIS_TOP_GAP-5,0,BOARD_HEIGHT_CNT*BOXSIZE+30))
-    pygame.draw.rect(DISPLAYSURF, BLACK, (TETRIS_LEFT_GAP+BOARD_WIDTH_CNT*BOXSIZE+5,TETRIS_TOP_GAP-5,1,BOARD_HEIGHT_CNT*BOXSIZE+30))
+    # left
+    pygame.draw.rect(DISPLAYSURF, BLACK, (0, 0, TETRIS_LEFT_GAP-2, WINDOWHEIGHT))
+    # right
+    pygame.draw.rect(DISPLAYSURF, BLACK, (WINDOWWIDTH-TETRIS_LEFT_GAP+10, 0, WINDOWWIDTH, WINDOWHEIGHT))
+    # top
+    pygame.draw.rect(DISPLAYSURF, BLACK, (0, 0, WINDOWWIDTH, TETRIS_TOP_GAP+2))
+    # bottom
+    pygame.draw.rect(DISPLAYSURF, BLACK, (0, TETRIS_TOP_GAP + BOXSIZE*BOARD_HEIGHT_CNT +5, WINDOWWIDTH, WINDOWHEIGHT))
 
 def drawBox(y,x,color):
     if color==BLANK:
@@ -971,10 +985,20 @@ def sendServer(data):
     connection.Send(data)
 
 def title():
-    global STATE
-    titleimg = pygame.image.load('images/title.png').convert()
+    global STATE, title_cloud_x, b_title_cloud, DISPLAYSURF, NETWORK
+
+    # background
+    titleimg = pygame.image.load('images/title.png')
     titlerect = titleimg.get_rect()
     DISPLAYSURF.blit(titleimg, titlerect)
+    cloudimg = pygame.image.load('images/title_cloud.png')
+    cloudrect = cloudimg.get_rect()
+    DISPLAYSURF.blit(cloudimg, cloudrect.move(16,16), Rect(title_cloud_x, 0, titlerect.w-30, cloudrect.h))
+    title_cloud_x += SCREEN_SPEED
+    if title_cloud_x >= cloudrect.w:
+        title_cloud_x = 30-titlerect.w
+
+    # button
     button_1 = pygame.image.load('images/button_1.png')
     button1_rect = button_1.get_rect()
     button1_rect = button1_rect.move(355,210)
@@ -996,23 +1020,38 @@ def title():
     b4 = DISPLAYSURF.blit(button_4, button4_rect)
     pygame.display.flip()
 
-    while True:
-        for event in pygame.event.get():
-            if event.type == pygame.MOUSEBUTTONDOWN and event.button == 1:
-                ## if mouse is pressed get position of cursor ##
-                pos = pygame.mouse.get_pos()
-                ## check if cursor is on button ##
-                if b1.collidepoint(pos):
+
+    for event in pygame.event.get():
+        if event.type == pygame.MOUSEBUTTONDOWN and event.button == 1:
+            ## if mouse is pressed get position of cursor ##
+            pos = pygame.mouse.get_pos()
+            ## check if cursor is on button ##
+            if b1.collidepoint(pos):
+                if NETWORK.bStart:
                     print("게임시작")
                     STATE = "GAME"
-                if b2.collidepoint(pos):
-                    print("이어하기")
-                if b3.collidepoint(pos):
-                    print("크레딧")
-                if b4.collidepoint(pos):
-                    print("게임종료")
-                    wnate()
-            return
+            elif b2.collidepoint(pos):
+                print("이어하기")
+            elif b3.collidepoint(pos):
+                print("크레딧")
+            elif b4.collidepoint(pos):
+                print("게임종료")
+                terminate()
+        return
+
+    # User Server 접속
+    font = pygame.font.Font(None, 25)
+    text = font.render("Player1" , True, (255, 255, 255))
+    DISPLAYSURF.blit(text,text.get_rect().move(20,480))
+    text = font.render("O" , True, GREEN)
+    DISPLAYSURF.blit(text,text.get_rect().move(90,480))
+    text = font.render("Player2" , True, (255, 255, 255))
+    DISPLAYSURF.blit(text,text.get_rect().move(20,500))
+    if NETWORK.bStart:
+        text = font.render("O" , True, GREEN)
+    else:
+        text = font.render("O" , True, GRAY)
+    DISPLAYSURF.blit(text,text.get_rect().move(90,500))
 
 
 def Gameover(): 
@@ -1036,37 +1075,31 @@ def main():
     FPSCLOCK = pygame.time.Clock()
     DISPLAYSURF = pygame.display.set_mode((WINDOWWIDTH,WINDOWHEIGHT))
     pygame.display.set_caption('EDGE')
-    # showTextScreen('EDGE')
-    # pygame.draw.rect(DISPLAYSURF, BORDERCOLOR, (TETRIS_LEFT_GAP, TETRIS_TOP_GAP, (TETRIS_LEFT_GAP * BOXSIZE) + 8, (BOARD_HEIGHT_CNT * BOXSIZE) + 8), 5)
 
-    #while checkForKeyPress() == None:
-    #    pygame.display.update()
-    #    FPSCLOCK.tick()
-    
-    # start game
+
+    NETWORK = NetworkListener()
+    while STATE == "TITLE":
+        title()
+        connection.Pump()
+        NETWORK.Pump()
+
+    #opening = pygame.image.load('images/opening.png')
+    #opening_rect = opening.get_rect()
+    #opening = DISPLAYSURF.blit(opening, opening_rect)
+    #pygame.display.flip()
+    #pygame.time.delay(3000)
+
+    g_time = time.time()
+    g_time -= 1
+    initProcess()
     while True:
-        if STATE == "TITLE":
-            title()
-        elif STATE == "GAME":
-            #opening = pygame.image.load('images/opening.png')
-            #opening_rect = opening.get_rect()
-            #opening = DISPLAYSURF.blit(opening, opening_rect)
-            #pygame.display.flip()
-            #pygame.time.delay(3000)
+        connection.Pump()
+        NETWORK.Pump()
+        mainLoop()
+        if STATE == "GAMEOVER":
+            break
 
-            # start game
-            g_time = time.time()
-            g_time -= 1
-            initProcess()
-            NETWORK = NetworkListener()
-            while True:
-                connection.Pump()
-                NETWORK.Pump()
-                mainLoop()
-                if STATE == "GAMEOVER":
-                    break
-        elif STATE == "GAMEOVER":
-            Gameover()
+    Gameover()
 
 
 ## function calls
