@@ -106,6 +106,10 @@ class NetworkListener(ConnectionListener):
         self.gameid = "0"
         sendServer({"action":"userInfo", "gameid":self.gameid})
 
+    def Network_overflow(self, data):
+        print("인원이 꽉 찼습니다. 접속을 종료합니다.")
+        terminate()
+        exit()
 
 ## functions
 def initProcess():

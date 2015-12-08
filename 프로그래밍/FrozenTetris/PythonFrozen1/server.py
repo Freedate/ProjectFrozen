@@ -49,6 +49,9 @@ class FrozenServer(Server):
 
     def Connected(self, channel, addr):
         print('new connection:', str(channel.addr))
+        if self.currentIdx >= 2:        # 현재 접속 인원이 2명이면
+            channel.Send({"action":"overflow"})
+            return
 
         if self.queue == None:         # 첫번째 유저
             print("First User")
@@ -59,6 +62,7 @@ class FrozenServer(Server):
             self.queue.player1 = channel
             self.queue.player0.Send({"action": "userConnected", "gameid":0})    # fez
             self.queue.player1.Send({"action": "userConnected", "gameid":1})    # block
+            self.currentIdx += 1
 
     def DelPlayer(self, player, id):
         print("Deleting player" + str(id) + " " + str(player.addr))
