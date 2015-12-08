@@ -44,6 +44,15 @@ class NetworkListener(ConnectionListener):
         global STATE
         STATE = "GAME"
         fez["stage"] = data["stage"]
+        print(fez["stage"])
+        if data["stage"] == 0:
+            pygame.mixer.stop()
+            bgm = pygame.mixer.Sound("sound/stage1/stage_bgm.wav")
+            bgm.play()
+        elif data["stage"]==1:
+            pygame.mixer.stop()
+            bgm = pygame.mixer.Sound("sound/stage2/stage_bgm.wav")
+            bgm.play()
 
     def Network_fezMove(self, data):
         global fezMoveLeft, fezMoveRight, fezJump, fezFall, c_time
@@ -81,6 +90,7 @@ class NetworkListener(ConnectionListener):
         m_fallingTetris["x"] = int(BOARD_WIDTH_CNT / 2 + MOVECNT)
         m_fallingTetris["y"] = -2
         m_fallingTetris["rotation"] = 0
+        
         m_GameStep = STEP.input.value
  
     def Network_movementTetris(self, data):
@@ -88,12 +98,16 @@ class NetworkListener(ConnectionListener):
         if data["act"] == "pos":
             m_fallingTetris[data["what"]] = int(data["value"])
         elif data["act"] == "rot":
+            rot_bgm = pygame.mixer.Sound("resources/sounds/block_rotate.wav")
+            rot_bgm.play()
             m_fallingTetris["rotation"] = int(data["value"])
 
     def Network_blockOnMap(self, data):
         global m_Map, m_fallingTetris
         x, y = data["x"], data["y"]
         m_Map[y][x].type = m_fallingTetris['color']
+        set_bgm = pygame.mixer.Sound('resources/sounds/block_set.wav')
+        set_bgm.play()
         
     def Network_moveComponents(self, data):
         global bInitMap
@@ -140,6 +154,7 @@ def inputProcess():
             sendServer({"action":"tetrisMove", "act":"pos", "what":"x", "value":m_fallingTetris['x']})
         elif pygame.key.get_pressed()[pygame.K_SPACE] != 0:
             fullDown()
+            
             sendServer({"action":"tetrisMove", "act":"pos", "what":"y", "value":m_fallingTetris['y']})
 
 
@@ -147,6 +162,8 @@ def inputProcess():
         if NETWORK.gameid == USER.player1.value:
             if pygame.key.get_pressed()[pygame.K_UP] != 0:
                 maxRot = len(PIECES[m_fallingTetris['shape']])-1
+                rot_bgm = pygame.mixer.Sound("resources/sounds/block_rotate.wav")
+                rot_bgm.play()
                 if m_fallingTetris['rotation']+1 > maxRot:
                     m_fallingTetris['rotation'] = 0
                 else:
@@ -231,6 +248,8 @@ def dataProcess():
 
         if coinCheck() > 0:
             coinPop()
+            coin_bgm = pygame.mixer.Sound('resources/sounds/network_pause.wav')
+            coin_bgm.play()
             SCORE += 100
 
         if NETWORK.gameid == USER.player1.value:    # tetris
@@ -488,7 +507,9 @@ def newTetris():
                 'y': -2,
                 'color': color}
     sendServer({"action":"newTetris", "shape":shape, "color":color})
+    
     return newBox
+
 
 def isBlocked():
     for x in range(TETRIS_WIDTH_CNT):
@@ -508,6 +529,8 @@ def setOnMap():
                 map_X, map_Y = convertBlockIdxToMapIdx(x,y,m_fallingTetris)
                 m_Map[map_Y][map_X].type = m_fallingTetris['color']
                 sendServer({"action":"blockOnMap", "x":map_X, "y":map_Y})
+                set_bgm = pygame.mixer.Sound('resources/sounds/block_set.wav')
+                set_bgm.play()
 
 def convertBlockIdxToMapIdx(x, y, tetris):
     # 테트리스 블럭 인덱스를 맵의 인덱스로 변환
@@ -691,9 +714,12 @@ def fallFez():
 def jumpFez():
     global fezJump, g_time, c_time, f_time
     if fezJump:
+        jump_bgm = pygame.mixer.Sound("resources/sounds/char_jump.wav")
+        jump_bgm.play()
         mapX, mapY = collisionUp()
         if mapX == -1:
             # 부딪친 블럭이 없을 때
+
             vel = g_time - c_time
             v = 25 - vel*100
             fez['jump'] = v     # v가 +면 올라가는 중
@@ -714,6 +740,7 @@ def jumpFez():
 def setFezPos(x, y, jump):
     fez["topX"], fez["topY"] = x, y
     fez["jump"] = jump
+    
 
     fez["leftLegX"] = fez["topX"] + FEZ_LEG_RIGHT_GAP
     fez["rightLegX"] = fez['topX'] + (FEZ_WIDTH_SIZE-FEZ_LEG_LEFT_GAP)
@@ -823,6 +850,7 @@ def coinCheck():
         if cRect.colliderect(fez['rect']):
             m_Coin[i].bPop = True
             cnt+=1
+            
     return cnt
 
 def coinPop():
@@ -908,6 +936,9 @@ def imgSprite():
     if fezJump == True:
         if fez['jump'] >= 0:
             # 올라가는중
+            
+            jump_bgm = pygame.mixer.Sound("resources/sounds/char_jump.wav")
+            jump_bgm.play()
             if fez['dir'] == 'right':
                 if fez['img'] == FEZ_IMG_JUMP_RIGHT:
                     fez['img'] = FEZ_IMG_JUMP_RIGHT2
@@ -1025,7 +1056,7 @@ def sendServer(data):
 
 def title():
     global STATE, title_cloud_x, b_title_cloud, DISPLAYSURF, NETWORK
-
+    
     # background
     titleimg = pygame.image.load('images/title.png')
     titlerect = titleimg.get_rect()
@@ -1058,7 +1089,9 @@ def title():
     button4_rect = button4_rect.move(355,330)
     b4 = DISPLAYSURF.blit(button_4, button4_rect)
     pygame.display.flip()
-
+    bgm = pygame.mixer.Sound('resources/sounds/opening.wav')
+    bgm.play()
+    
 
     for event in pygame.event.get():
         if event.type == pygame.MOUSEBUTTONDOWN and event.button == 1:
@@ -1068,17 +1101,27 @@ def title():
             if b1.collidepoint(pos):
                 if NETWORK.bConnect and NETWORK.gameid == USER.player0.value:
                     print("게임시작1")
+                    pygame.mixer.stop()
                     STATE = "GAME"
                     fez['stage'] = 0
+                    bgm = pygame.mixer.Sound("sound/stage1/stage_bgm.wav")
+                    bgm.play()
                     sendServer({"action":"gameStart","stage":0})
             elif b2.collidepoint(pos):
                 if NETWORK.bConnect and NETWORK.gameid == USER.player0.value:
                     print("게임시작2")
+                    pygame.mixer.stop()
                     STATE = "GAME"
                     fez['stage'] = 1
+                    bgm = pygame.mixer.Sound("sound/stage2/stage_bgm.wav")
+                    bgm.play()
                     sendServer({"action":"gameStart","stage":1})
             elif b3.collidepoint(pos):
                 print("크레딧")
+                pygame.mixer.stop()
+                bgm = pygame.mixer.Sound("resources/sounds/bgm_arcade.wav")
+                bgm.play()
+                Credit()
             elif b4.collidepoint(pos):
                 print("게임종료")
                 terminate()
@@ -1098,10 +1141,28 @@ def title():
         text = font.render("O" , True, GRAY)
     DISPLAYSURF.blit(text,text.get_rect().move(90,500))
 
+def Credit():
+    global STATE, DISPLAYSURF
+    
+    creditimg = pygame.image.load('images/credit.png')
+    creditrect = creditimg.get_rect()
+    c = DISPLAYSURF.blit(creditimg, creditrect)
+    pygame.display.flip()
+    while True:
+        for event in pygame.event.get():
+            if event.type == pygame.MOUSEBUTTONDOWN and event.button == 1:
+                pos = pygame.mouse.get_pos()
+                if c.collidepoint(pos):
+                    DISPLAYSURF.fill((0,0,0))
+                    STATE = "TITLE"
+                    pygame.mixer.stop()
+                    return
+            
+
 
 def Gameover(): 
     global STATE, SCORE
-
+    
     gameover = pygame.image.load('images/gameover.png')
     gameover_rect = gameover.get_rect()
     gameover_rect = gameover_rect.move(0,0)
@@ -1110,7 +1171,10 @@ def Gameover():
     text = font.render("Your Score : %s" % SCORE, True, (255, 255, 255))
     DISPLAYSURF.blit(text,text.get_rect().move(300,270))
     pygame.display.flip()
-    pygame.time.delay(1500)
+    pygame.mixer.stop()
+    bgm = pygame.mixer.Sound('resources/sounds/gameover_2.wav')
+    bgm.play()
+    pygame.time.delay(2900)
 
     gotoMain()
 
