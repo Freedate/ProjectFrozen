@@ -5,7 +5,7 @@ from PodSixNet.Connection import ConnectionListener, connection
 from time import sleep
 
 class NetworkListener(ConnectionListener):
-    bStart = False
+    bConnect = False
     gameid = 0
 
     def __init__(self):
@@ -21,7 +21,7 @@ class NetworkListener(ConnectionListener):
             self.Connect((host, int(port)))
             print("Chat client started")
 
-            self.bStart = False;    # 게임이 시작했는지
+            self.bConnect = False;    
         except:
             error = sys.exc_info()[0]
             print(error)
@@ -35,10 +35,15 @@ class NetworkListener(ConnectionListener):
         print('Server disconnected')
         exit() 
 ################
-    def Network_gameStart(self, data):
-        self.bStart = True
+    def Network_userConnected(self, data):
+        self.bConnect = True
         self.gameid = data["gameid"]
         sendServer({"action":"userInfo", "gameid":data["gameid"]})
+
+    def Network_gameStart(self, data):
+        global STATE
+        STATE = "GAME"
+        fez["stage"] = data["stage"]
 
     def Network_fezMove(self, data):
         global fezMoveLeft, fezMoveRight, fezJump, fezFall, c_time
@@ -64,9 +69,10 @@ class NetworkListener(ConnectionListener):
     def Network_fezPos(self, data):
         setFezPos(data["x"], data["y"], data["jump"])
 
-    def Network_gameOver2(self, data):
-        global STATE
+    def Network_gameOver(self, data):
+        global STATE, SCORE
         STATE = "GAMEOVER"
+        SCORE = data["score"]
 
     def Network_newTetris(self, data):
         global m_fallingTetris, m_GameStep
@@ -90,11 +96,13 @@ class NetworkListener(ConnectionListener):
         m_Map[y][x].type = m_fallingTetris['color']
         
     def Network_moveComponents(self, data):
-        moveComponents()
+        global bInitMap
+        if bInitMap:
+            moveComponents()
 
     def Network_outUser(self, data):
         global NETWORK
-        NETWORK.bStart = False
+        NETWORK.bConnect = False
         self.gameid = "0"
         sendServer({"action":"userInfo", "gameid":self.gameid})
 
@@ -103,7 +111,7 @@ class NetworkListener(ConnectionListener):
 def initProcess():
     global SCORE
     # initMap("map/testmap.txt")
-    initMap("map/stage1/stage.txt")
+    initMap(START_MAP[fez['stage']])
     initBackImg(BACK_WIDTH_STAGE2,BACK_HEIGHT_STAGE2)
     SCORE = 0
     return     
@@ -183,13 +191,13 @@ def dataProcess():
     global m_GameStep
     global m_fallingTetris
     global tetris_time, fez_time, f_time
-    global SCORE, NETWORK
+    global SCORE, NETWORK, bGameOver
     curTime = time.time()
 
     # 2인접속시 실행 
-    #if NETWORK.bStart:
+    #if NETWORK.bConnect:
     #   moveComponents()
-    if STATE=="GAME" and NETWORK.bStart:
+    if STATE=="GAME" and NETWORK.bConnect:
         if NETWORK.gameid == USER.player0.value:
             #플레이어0만 자기 시간으로 moveComponents
             moveComponents()
@@ -201,25 +209,25 @@ def dataProcess():
         imgSprite()
         enemyImage()
         coinImage()
-        if STATE=="GAME" and NETWORK.bStart:
+        if STATE=="GAME" and NETWORK.bConnect:
             SCORE += SCREEN_SPEED
 
     if NETWORK.gameid == USER.player0.value:    # 페즈의 움직임
         moveFez()
         jumpFez()
         if collisionBlockDown(fez['leftLegX'],fez['rightLegX'],fez['botY']+5) == False:
-            fallFez() 
+            fallFez()
+        checkEnemyFez()
+        if bGameOver == False:
+            checkGameover()
 
-    if STATE=="GAME" and NETWORK.bStart:
+    if STATE=="GAME" and NETWORK.bConnect:
         moveEnemy()
         fallEnemy()
 
-        checkEnemyFez()
-        checkGameover()
-
         if coinCheck() > 0:
             coinPop()
-            i=0     # 여기서 스코어 증가
+            SCORE += 100
 
         if NETWORK.gameid == USER.player1.value:    # tetris
             if curTime-tetris_time >= 0.3:
@@ -264,7 +272,7 @@ def mainLoop():
     inputProcess()
     if curTime - g_time >= 0.03:
         dataProcess()
-        if STATE=="GAME" and NETWORK.bStart and NETWORK.gameid == USER.player0.value and STATE != "GAMEOVER":
+        if STATE=="GAME" and NETWORK.bConnect and NETWORK.gameid == USER.player0.value and STATE != "GAMEOVER":
             sendServer({"action":"fezPos", "x":fez["topX"], "y":fez["topY"], "jump":fez["jump"]})
         g_time = time.time()
     renderProcess()
@@ -292,6 +300,8 @@ def initFez(x,y,stage):
 
 
 def initMap(txt):
+    global bInitMap
+
     fp = open(txt,'r')
     for i in range(MAP_HEIGHT_CNT):
         for j in range(MAP_WIDTH_CNT):
@@ -303,11 +313,11 @@ def initMap(txt):
             m_Map[i][j].x = TETRIS_LEFT_GAP+j*BOXSIZE
             m_Map[i][j].y = TETRIS_TOP_GAP+i*BOXSIZE
             if line[j] == '*':
-                print(line[j])
+                #print(line[j])
                 initEnemy(j,i)
                 m_Map[i][j].type = BLANK
             elif line[j] == '^':
-                print(line[j])
+                #print(line[j])
                 initCoin(j,i)
                 m_Map[i][j].type = BLANK
             elif line[j] != BLANK and line[j] != '\n':
@@ -315,17 +325,8 @@ def initMap(txt):
             elif line[j] != '\n':
                 m_Map[i][j].type = line[j]
 
-    #for i in range(MAP_HEIGHT_CNT):
-    #    for j in range(MAP_WIDTH_CNT):
-    #        m_Map[i][j].x = TETRIS_LEFT_GAP+j*BOXSIZE
-    #        m_Map[i][j].y = TETRIS_TOP_GAP+i*BOXSIZE
-    #        if i>=MAP_HEIGHT_CNT-3:
-    #            m_Map[i][j].type = 4
-
-    #initEnemy(BOARD_WIDTH_CNT-10,BOARD_HEIGHT_CNT-8)   
-    #initEnemy(BOARD_WIDTH_CNT-5,BOARD_HEIGHT_CNT-4)   
-
     fp.close()
+    bInitMap = True
 
 def initEnemy(x,y):
     mapX = TETRIS_LEFT_GAP+x*BOXSIZE
@@ -425,13 +426,13 @@ def resetMap():
             m_Map[i][j].x = TETRIS_LEFT_GAP+j*BOXSIZE
             m_Map[i][j].y = TETRIS_TOP_GAP+i*BOXSIZE
             # idx = j-(MAP_WIDTH_CNT-MAP_BOARD_GAP)
-            print(idx,end=" ")
+            #print(idx,end=" ")
             if line[idx] == '*':
-                print(line[idx])
+                #print(line[idx])
                 initEnemy(j,i)
                 m_Map[i][j].type = BLANK
             elif line[idx] == '^':
-                print(line[idx])
+                #print(line[idx])
                 initCoin(j,i)
                 m_Map[i][j].type = BLANK
             elif line[idx] != BLANK and line[idx] != '\n':
@@ -449,10 +450,10 @@ def moveComponents():
     fez['topX'] -= SCREEN_SPEED
     fez['rightLegX'] -= SCREEN_SPEED
     fez['leftLegX'] -= SCREEN_SPEED
+
     back1['x'] -= 1
     if back1['x']+back1['width'] < 0:
         back1['x'] = back2['x']+back2['width']
-    
     back2['x'] -= 1
     if back2['x']+back2['width'] < 0:
         back2['x'] = back1['x']+back1['width']
@@ -716,17 +717,18 @@ def setFezPos(x, y, jump):
 
 
 def checkEnemyFez():
-    global STATE
+    #global STATE
     for i in range(len(m_Enemy)):
         eRect = pygame.Rect((m_Enemy[i].x,m_Enemy[i].y,m_Enemy[i].width,m_Enemy[i].height))
         fez['rect'] = pygame.Rect((fez['topX'],fez['topY'],fez['width'],fez['height']))
         if eRect.colliderect(fez['rect']):
-            sendServer({"action":"gameOver"})
+            sendServer({"action":"gameOver", "score":SCORE})
 
 def checkGameover():
-    global STATE
+    global SCORE, STATE, bGameOver
     if fez['topX'] < TETRIS_LEFT_GAP or fez['topY'] > 460:
-        sendServer({"action":"gameOver"})
+        sendServer({"action":"gameOver", "score":SCORE})
+        bGameOver = True
 
 ### ENEMY
 def moveEnemy():
@@ -960,6 +962,38 @@ def terminate():
     pygame.quit()
     sys.exit()
 
+def gotoMain():
+    global STATE, SCORE, MOVEBLOCK, MOVECNT, back1, back2, title_cloud_x, title_cloud_gap
+    global fezMoveLeft, fezMoveRight, fezJump, fezFall, m_Enemy, m_Coin, bGameOver
+    STATE = "TITLE"
+    SCORE = 0
+
+    MOVEBLOCK = 0
+    MOVECNT = 0
+    back1 = {'x':0,'y':0,'width':0,'height':0}
+    back2 = {'x':0,'y':0,'width':0,'height':0}
+
+    title_cloud_x = 0
+    title_cloud_gap = 0
+    
+    fez["dir"] = 'right'
+    fez["topX"], fez["topY"] = FEZ_START_X, FEZ_START_Y
+    fez["leftLegX"], fez["rightLegX"] = FEZ_START_X+FEZ_LEG_LEFT_GAP, FEZ_START_X+FEZ_WIDTH_SIZE-FEZ_LEG_RIGHT_GAP
+    fez["botY"], fez["jump"] = FEZ_START_Y+FEZ_HEIGHT_SIZE, 9999
+  
+    fez['rect'] = pygame.Rect((fez['topX'],fez['topY'],fez['width'],fez['height']))
+
+    fezMoveLeft = False
+    fezMoveRight = False
+    fezJump = False
+    fezFall = False
+
+    m_Enemy = []
+    m_Coin = []
+
+    bGameOver = False
+    bInitMap = False
+
 def checkForQuit():
     for event in pygame.event.get(QUIT): # get all the QUIT events
         terminate() # terminate if any QUIT events are present
@@ -979,7 +1013,7 @@ def checkForKeyPress():
 
 def sendServer(data):
     global NETWORK
-    if NETWORK.bStart == False:
+    if NETWORK.bConnect == False:
         return
 
     connection.Send(data)
@@ -1027,11 +1061,17 @@ def title():
             pos = pygame.mouse.get_pos()
             ## check if cursor is on button ##
             if b1.collidepoint(pos):
-                if NETWORK.bStart:
-                    print("게임시작")
+                if NETWORK.bConnect and NETWORK.gameid == USER.player0.value:
+                    print("게임시작1")
                     STATE = "GAME"
+                    fez['stage'] = 0
+                    sendServer({"action":"gameStart","stage":0})
             elif b2.collidepoint(pos):
-                print("이어하기")
+                if NETWORK.bConnect and NETWORK.gameid == USER.player0.value:
+                    print("게임시작2")
+                    STATE = "GAME"
+                    fez['stage'] = 1
+                    sendServer({"action":"gameStart","stage":1})
             elif b3.collidepoint(pos):
                 print("크레딧")
             elif b4.collidepoint(pos):
@@ -1047,7 +1087,7 @@ def title():
     DISPLAYSURF.blit(text,text.get_rect().move(90,480))
     text = font.render("Player2" , True, (255, 255, 255))
     DISPLAYSURF.blit(text,text.get_rect().move(20,500))
-    if NETWORK.bStart:
+    if NETWORK.bConnect:
         text = font.render("O" , True, GREEN)
     else:
         text = font.render("O" , True, GRAY)
@@ -1065,42 +1105,43 @@ def Gameover():
     text = font.render("Your Score : %s" % SCORE, True, (255, 255, 255))
     DISPLAYSURF.blit(text,text.get_rect().move(300,270))
     pygame.display.flip()
-    pygame.time.delay(2000)
-    terminate()
+    pygame.time.delay(1500)
+
+    gotoMain()
 
 #### main
 def main():
-    global FPSCLOCK, DISPLAYSURF, BASICFONT, BIGFONT, NETWORK
+    global FPSCLOCK, DISPLAYSURF, BASICFONT, BIGFONT, NETWORK, STATE
     pygame.init()
     FPSCLOCK = pygame.time.Clock()
     DISPLAYSURF = pygame.display.set_mode((WINDOWWIDTH,WINDOWHEIGHT))
     pygame.display.set_caption('EDGE')
 
-
     NETWORK = NetworkListener()
-    while STATE == "TITLE":
-        title()
-        connection.Pump()
-        NETWORK.Pump()
-
-    #opening = pygame.image.load('images/opening.png')
-    #opening_rect = opening.get_rect()
-    #opening = DISPLAYSURF.blit(opening, opening_rect)
-    #pygame.display.flip()
-    #pygame.time.delay(3000)
-
-    g_time = time.time()
-    g_time -= 1
-    initProcess()
     while True:
+        while STATE == "TITLE":
+            title()
+            connection.Pump()
+            NETWORK.Pump()
+
+        #opening = pygame.image.load('images/opening.png')
+        #opening_rect = opening.get_rect()
+        #opening = DISPLAYSURF.blit(opening, opening_rect)
+        #pygame.display.flip()
+        #pygame.time.delay(3000)
+
+        g_time = time.time()
+        g_time -= 1
+        initProcess()
+        while True:
+            if STATE == "GAMEOVER":
+                break
+            connection.Pump()
+            NETWORK.Pump()
+            mainLoop()
+        Gameover()
         connection.Pump()
         NETWORK.Pump()
-        mainLoop()
-        if STATE == "GAMEOVER":
-            break
-
-    Gameover()
-
 
 ## function calls
 main()

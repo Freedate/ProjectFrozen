@@ -58,6 +58,8 @@ BACK_HEIGHT_STAGE2 = 210
 BACK_WIDTH_STAGE2 = 1536
 BACK_HEIGHT_STAGE2 = 448
 
+START_MAP = [('map/stage1/stage.txt'),('map/stage2/stage.txt')]
+
 NEW_MAP = [('map/stage1/stage_new_1.txt','map/stage1/stage_new_2.txt','map/stage1/stage_new_3.txt','map/stage1/stage_new_4.txt','map/stage1/stage_new_5.txt','map/stage1/stage_new_6.txt','map/stage1/stage_new_7.txt','map/stage1/stage_new_8.txt','map/stage1/stage_new_9.txt','map/stage1/stage_new_10.txt'),
            ('map/stage2/stage_new_1.txt','map/stage2/stage_new_2.txt','map/stage2/stage_new_3.txt','map/stage2/stage_new_4.txt','map/stage2/stage_new_5.txt','map/stage2/stage_new_6.txt','map/stage2/stage_new_7.txt','map/stage2/stage_new_8.txt','map/stage2/stage_new_9.txt','map/stage2/stage_new_10.txt')]
 
@@ -291,7 +293,6 @@ fez = {'img':FEZ_IMG_RIGHT,'dir':'right','width':FEZ_WIDTH_SIZE,'height':FEZ_HEI
 
 fez['rect'] = pygame.Rect((fez['topX'],fez['topY'],fez['width'],fez['height']))
 
-
 fezMoveLeft = False
 fezMoveRight = False
 fezJump = False
@@ -303,4 +304,6 @@ c_time = time.time()
 
 title_cloud_x = 0
 title_cloud_gap = 0
-b_title_cloud = False
+
+bGameOver = False
+bInitMap = False
