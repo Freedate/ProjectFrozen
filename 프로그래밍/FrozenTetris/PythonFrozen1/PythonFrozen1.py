@@ -17,7 +17,7 @@ class NetworkListener(ConnectionListener):
         #        host,port = address.split(":")
             # 강제로 로컬:8000으로 접속
             # host, port = "localhost", 8000
-            host, port = "211.201.219.206", 8000
+            host, port = "203.252.182.154", 8000
             self.Connect((host, int(port)))
             print("Chat client started")
 
@@ -87,7 +87,7 @@ class NetworkListener(ConnectionListener):
         x, y = data["x"], data["y"]
         m_Map[y][x].type = m_fallingTetris['color']
         
-    def Network_moveComponents(self):
+    def Network_moveComponents(self, data):
         moveComponents()
 
 
