@@ -10,7 +10,7 @@ WINDOWHEIGHT = 540
 SCREEN_SPEED = 1
 MOVEBLOCK = 0
 MOVECNT = 0
-STATE = "TITLE"
+STATE = "GAME"
 SCORE = 0
 
 ## tetris
@@ -35,8 +35,8 @@ LIGHTRED    = (175,  20,  20)
 GREEN       = (  0, 255,   0)
 LIGHTGREEN  = ( 20, 175,  20)
 BLUE        = (  0,   0, 155)
-LIGHTBLUE   = ( 90,  170, 200)
-YELLOW      = (155, 155,   0)
+LIGHTBLUE   = ( 90, 170, 200)
+YELLOW      = (200, 190, 150)
 LIGHTYELLOW = (175, 175,  20)
 COLORS      = (     BLUE,      GREEN,      RED,      YELLOW)
 # BLOCKTYPE = ('images/block_1.png','images/ground_2.png','images/underground_6.png','images/box.png')
@@ -50,7 +50,7 @@ BACKTYPE = [('resources/graphics/stage1_sky/background/stage_bg1.png','resources
 back1 = {'x':0,'y':0,'width':0,'height':0}
 back2 = {'x':0,'y':0,'width':0,'height':0}
 backImg1 = pygame.image.load(BACKTYPE[0][0])
-backImg2 = pygame.image.load(BACKTYPE[1][1])
+backImg2 = pygame.image.load(BACKTYPE[1][0])
 BACKIMG = [backImg1,backImg2]
 
 BACK_WIDTH_STAGE2 = 1536
@@ -289,7 +289,7 @@ FEZ_IMG_JUMP_LEFT4 = pygame.transform.flip(FEZ_IMG_JUMP_RIGHT4,True,False)
 fez = {'img':FEZ_IMG_RIGHT,'dir':'right','width':FEZ_WIDTH_SIZE,'height':FEZ_HEIGHT_SIZE,
        'topX':FEZ_START_X,'topY':FEZ_START_Y,
        'leftLegX':FEZ_START_X+FEZ_LEG_LEFT_GAP,'rightLegX':FEZ_START_X+FEZ_WIDTH_SIZE-FEZ_LEG_RIGHT_GAP,
-       'botY':FEZ_START_Y+FEZ_HEIGHT_SIZE,'jump':9999,'speed':FEZ_SPEED,'stage':0}
+       'botY':FEZ_START_Y+FEZ_HEIGHT_SIZE,'jump':9999,'speed':FEZ_SPEED,'stage':1}
 
 fez['rect'] = pygame.Rect((fez['topX'],fez['topY'],fez['width'],fez['height']))
 

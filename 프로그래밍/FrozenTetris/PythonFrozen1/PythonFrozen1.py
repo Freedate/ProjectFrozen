@@ -217,8 +217,8 @@ def dataProcess():
         jumpFez()
         if collisionBlockDown(fez['leftLegX'],fez['rightLegX'],fez['botY']+5) == False:
             fallFez()
-        checkEnemyFez()
         if bGameOver == False:
+            checkEnemyFez()
             checkGameover()
 
     if STATE=="GAME" and NETWORK.bConnect:
@@ -717,12 +717,13 @@ def setFezPos(x, y, jump):
 
 
 def checkEnemyFez():
-    #global STATE
+    global SCORE, bGameOver
     for i in range(len(m_Enemy)):
         eRect = pygame.Rect((m_Enemy[i].x,m_Enemy[i].y,m_Enemy[i].width,m_Enemy[i].height))
         fez['rect'] = pygame.Rect((fez['topX'],fez['topY'],fez['width'],fez['height']))
         if eRect.colliderect(fez['rect']):
             sendServer({"action":"gameOver", "score":SCORE})
+            bGameOver = True
 
 def checkGameover():
     global SCORE, STATE, bGameOver
@@ -830,8 +831,8 @@ def coinPop():
 def drawBackGround():
     rect1 = pygame.Rect((back1['x'],back1['y'],back1['width'],back1['height']))
     rect2 = pygame.Rect((back2['x'],back2['y'],back2['width'],back2['height']))
-    DISPLAYSURF.blit(BACKIMG[fez['stage']],rect1)
-    DISPLAYSURF.blit(BACKIMG[fez['stage']],rect2)
+    DISPLAYSURF.blit(BACKIMG[fez['stage']], rect1)
+    DISPLAYSURF.blit(BACKIMG[fez['stage']], rect2)
 
 def drawBoard():
     for y in range(MAP_HEIGHT_CNT):
