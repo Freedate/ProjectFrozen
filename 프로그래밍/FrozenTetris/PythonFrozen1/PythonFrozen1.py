@@ -43,7 +43,6 @@ class NetworkListener(ConnectionListener):
         global STATE
         STATE = "GAME"
         fez["stage"] = data["stage"]
-        print(fez["stage"])
         if data["stage"] == 0:
             pygame.mixer.stop()
             bgm = pygame.mixer.Sound("sound/stage1/stage_bgm.wav")
@@ -126,10 +125,13 @@ class NetworkListener(ConnectionListener):
 
 ## functions
 def initProcess():
-    global SCORE
+    global SCORE, g_time
     # initMap("map/testmap.txt")
     initMap(START_MAP[fez['stage']])
     initBackImg(BACK_WIDTH_STAGE2,BACK_HEIGHT_STAGE2)
+    initFez(FEZ_START_X, FEZ_START_Y, fez['stage'])
+
+    g_time = time.time()
     SCORE = 0
     return     
    
@@ -312,7 +314,7 @@ def initBackImg(width,height):
 
 def initFez(x,y,stage):
     fez['topX'] = x
-    fez['topY'] = y+160
+    fez['topY'] = y
     fez['leftLegX'] = x+FEZ_LEG_LEFT_GAP
     fez['rightLegX'] = x+FEZ_WIDTH_SIZE-FEZ_LEG_RIGHT_GAP
     fez['botY'] = y+FEZ_HEIGHT_SIZE+160
@@ -1198,7 +1200,7 @@ def main():
         pygame.time.delay(3000)
 
         g_time = time.time()
-        g_time -= 1
+        #g_time -= 1
         initProcess()
         while True:
             if STATE == "GAMEOVER":
