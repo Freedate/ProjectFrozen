@@ -5,9 +5,16 @@ from time import sleep
 class ClientChannel(Channel):
     def __init__(self, *args, **kwargs):
         Channel.__init__(self, *args, **kwargs)
+        self.gameid = "0"
+
+    def Network_gameStart(self, data):
+        self._server.GameStart(data["stage"])
+
+    def Network_userInfo(self, data):
+        self.gameid = data["gameid"]
 
     def Close(self):
-        self._server.DelPlayer(self)
+        self._server.DelPlayer(self, self.gameid)
 
     def Network_fezMove(self, data):
         self._server.FezMove(data["move"], data["turn"])
@@ -16,7 +23,7 @@ class ClientChannel(Channel):
         self._server.FezPos(data["x"], data["y"], data["jump"])
     
     def Network_gameOver(self, data):
-        self._server.GameOver()
+        self._server.GameOver(data["score"])
 
     def Network_newTetris(self, data):
         self._server.NewTetris(data["shape"], data["color"])
@@ -27,8 +34,8 @@ class ClientChannel(Channel):
     def Network_blockOnMap(self, data):
         self._server.BlockOnMap(data["x"], data["y"])
 
-    def Network_moveComponents(self):
-        self._server.MoveComponents(self)
+    def Network_moveComponents(self, data):
+        self._server.MoveComponents()
 
 class FrozenServer(Server):
     channelClass = ClientChannel
@@ -42,6 +49,9 @@ class FrozenServer(Server):
 
     def Connected(self, channel, addr):
         print('new connection:', str(channel.addr))
+        if self.currentIdx >= 2:        # 현재 접속 인원이 2명이면
+            channel.Send({"action":"overflow"})
+            return
 
         if self.queue == None:         # 첫번째 유저
             print("First User")
@@ -50,15 +60,25 @@ class FrozenServer(Server):
         else:      # 두번째 유저
             print("Second User")
             self.queue.player1 = channel
-            self.queue.player0.Send({"action": "gameStart", "gameid":0})    # fez
-            self.queue.player1.Send({"action": "gameStart", "gameid":1})    # block
+            self.queue.player0.Send({"action": "userConnected", "gameid":0})    # fez
+            self.queue.player1.Send({"action": "userConnected", "gameid":1})    # block
+            self.currentIdx += 1
 
-    def DelPlayer(self, player):
-        print("Deleting Player" + str(player.addr))
+    def DelPlayer(self, player, id):
+        print("Deleting player" + str(id) + " " + str(player.addr))
         # 변수 리셋
-        self.queue = None
-        self.currentIdx = 0
-        #exit()
+        if self.currentIdx == 2:
+            self.currentIdx = 1
+            if int(id) == 0:
+                self.queue.player0 = self.queue.player1
+            self.queue.player0.Send({"action":"outUser"})
+            self.queue.player1 = None
+        else:
+            self.queue = None
+            self.currentIdx = 0
+
+    def GameStart(self, stage):
+        self.queue.player1.Send({"action": "gameStart","stage":stage})
 
     def PrintStr(self, str):
         print(str)
@@ -70,9 +90,9 @@ class FrozenServer(Server):
     def FezPos(self, x, y, jump):
         self.queue.player1.Send({"action": "fezPos", "x":x, "y":y, "jump":jump})
 
-    def GameOver(self):
-        self.queue.player0.Send({"action": "gameOver2"})
-        self.queue.player1.Send({"action": "gameOver2"})
+    def GameOver(self, score):
+        self.queue.player0.Send({"action": "gameOver", "score":score})
+        self.queue.player1.Send({"action": "gameOver", "score":score})
 
     def NewTetris(self, shape, color):
         self.queue.player0.Send({"action": "newTetris", "shape":shape, "color":color})
@@ -101,15 +121,17 @@ class Game:
 
 
 print("STARTING SERVER ON LOCALHOST")
-# try:
-#address = input("Host:Port (localhost:8000): ")
-#if not address:
-#    host, port = "localhost", 8000
-#else:
-#    host,port = address.split(":")
-host, port = "203.252.182.154", 8000
-frozenServe = FrozenServer(localaddr=(host, int(port)))
-frozenServe.tick()
-
+try:
+    address = input("Host:Port (localhost:8000): ")
+    if not address:
+        host, port = "localhost", 8000
+    else:
+        host,port = address.split(":")
+    #host, port = "203.252.182.154", 8000
+    frozenServe = FrozenServer(localaddr=(host, int(port)))
+    frozenServe.tick()
+except:
+    error = sys.exc_info()[0]
+    print(error)
 
 

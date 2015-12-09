@@ -5,23 +5,22 @@ from PodSixNet.Connection import ConnectionListener, connection
 from time import sleep
 
 class NetworkListener(ConnectionListener):
-    bStart = False
+    bConnect = False
     gameid = 0
 
     def __init__(self):
-        #address = input("Address of Server: ")
+        address = input("Address of Server: ")
         try:
-        #    if not address:
-        #        host, port = "localhost", 8000
-        #    else:
-        #        host,port = address.split(":")
-            # 강제로 로컬:8000으로 접속
+            if not address:
+                host, port = "localhost", 8000
+            else:
+                host, port = address.split(":")
             # host, port = "localhost", 8000
-            host, port = "211.201.219.206", 8000
+            # host, port = "203.252.182.154", 8000
             self.Connect((host, int(port)))
             print("Chat client started")
 
-            self.bStart = False;    # 게임이 시작했는지
+            self.bConnect = False;    
         except:
             error = sys.exc_info()[0]
             print(error)
@@ -35,9 +34,25 @@ class NetworkListener(ConnectionListener):
         print('Server disconnected')
         exit() 
 ################
-    def Network_gameStart(self, data):
-        self.bStart = True
+    def Network_userConnected(self, data):
+        self.bConnect = True
         self.gameid = data["gameid"]
+        sendServer({"action":"userInfo", "gameid":data["gameid"]})
+
+    def Network_gameStart(self, data):
+        global STATE
+        STATE = "GAME"
+        fez["stage"] = data["stage"]
+        print(fez["stage"])
+        if data["stage"] == 0:
+            pygame.mixer.stop()
+            bgm = pygame.mixer.Sound("sound/stage1/stage_bgm.wav")
+            bgm.play()
+        elif data["stage"]==1:
+            pygame.mixer.stop()
+            bgm = pygame.mixer.Sound("sound/stage2/stage_bgm.wav")
+            bgm.play()
+
     def Network_fezMove(self, data):
         global fezMoveLeft, fezMoveRight, fezJump, fezFall, c_time
         if data["turn"] == "on":
@@ -62,9 +77,10 @@ class NetworkListener(ConnectionListener):
     def Network_fezPos(self, data):
         setFezPos(data["x"], data["y"], data["jump"])
 
-    def Network_gameOver2(self, data):
-        global STATE
+    def Network_gameOver(self, data):
+        global STATE, SCORE
         STATE = "GAMEOVER"
+        SCORE = data["score"]
 
     def Network_newTetris(self, data):
         global m_fallingTetris, m_GameStep
@@ -73,6 +89,7 @@ class NetworkListener(ConnectionListener):
         m_fallingTetris["x"] = int(BOARD_WIDTH_CNT / 2 + MOVECNT)
         m_fallingTetris["y"] = -2
         m_fallingTetris["rotation"] = 0
+        
         m_GameStep = STEP.input.value
  
     def Network_movementTetris(self, data):
@@ -80,22 +97,38 @@ class NetworkListener(ConnectionListener):
         if data["act"] == "pos":
             m_fallingTetris[data["what"]] = int(data["value"])
         elif data["act"] == "rot":
+            rot_bgm = pygame.mixer.Sound("resources/sounds/block_rotate.wav")
+            rot_bgm.play()
             m_fallingTetris["rotation"] = int(data["value"])
 
     def Network_blockOnMap(self, data):
         global m_Map, m_fallingTetris
         x, y = data["x"], data["y"]
         m_Map[y][x].type = m_fallingTetris['color']
+        set_bgm = pygame.mixer.Sound('resources/sounds/block_set.wav')
+        set_bgm.play()
         
-    def Network_moveComponents(self):
-        moveComponents()
+    def Network_moveComponents(self, data):
+        global bInitMap
+        if bInitMap:
+            moveComponents()
 
+    def Network_outUser(self, data):
+        global NETWORK
+        NETWORK.bConnect = False
+        self.gameid = "0"
+        sendServer({"action":"userInfo", "gameid":self.gameid})
+
+    def Network_overflow(self, data):
+        print("인원이 꽉 찼습니다. 접속을 종료합니다.")
+        terminate()
+        exit()
 
 ## functions
 def initProcess():
     global SCORE
     # initMap("map/testmap.txt")
-    initMap("map/stage1/stage.txt")
+    initMap(START_MAP[fez['stage']])
     initBackImg(BACK_WIDTH_STAGE2,BACK_HEIGHT_STAGE2)
     SCORE = 0
     return     
@@ -120,6 +153,7 @@ def inputProcess():
             sendServer({"action":"tetrisMove", "act":"pos", "what":"x", "value":m_fallingTetris['x']})
         elif pygame.key.get_pressed()[pygame.K_SPACE] != 0:
             fullDown()
+            
             sendServer({"action":"tetrisMove", "act":"pos", "what":"y", "value":m_fallingTetris['y']})
 
 
@@ -127,6 +161,8 @@ def inputProcess():
         if NETWORK.gameid == USER.player1.value:
             if pygame.key.get_pressed()[pygame.K_UP] != 0:
                 maxRot = len(PIECES[m_fallingTetris['shape']])-1
+                rot_bgm = pygame.mixer.Sound("resources/sounds/block_rotate.wav")
+                rot_bgm.play()
                 if m_fallingTetris['rotation']+1 > maxRot:
                     m_fallingTetris['rotation'] = 0
                 else:
@@ -175,13 +211,13 @@ def dataProcess():
     global m_GameStep
     global m_fallingTetris
     global tetris_time, fez_time, f_time
-    global SCORE, NETWORK
+    global SCORE, NETWORK, bGameOver
     curTime = time.time()
 
     # 2인접속시 실행 
-    #if NETWORK.bStart:
+    #if NETWORK.bConnect:
     #   moveComponents()
-    if NETWORK.bStart:
+    if STATE=="GAME" and NETWORK.bConnect:
         if NETWORK.gameid == USER.player0.value:
             #플레이어0만 자기 시간으로 moveComponents
             moveComponents()
@@ -193,25 +229,27 @@ def dataProcess():
         imgSprite()
         enemyImage()
         coinImage()
-        if NETWORK.bStart:
+        if STATE=="GAME" and NETWORK.bConnect:
             SCORE += SCREEN_SPEED
 
     if NETWORK.gameid == USER.player0.value:    # 페즈의 움직임
         moveFez()
         jumpFez()
         if collisionBlockDown(fez['leftLegX'],fez['rightLegX'],fez['botY']+5) == False:
-            fallFez() 
+            fallFez()
+        if bGameOver == False:
+            checkEnemyFez()
+            checkGameover()
 
-    if NETWORK.bStart:
+    if STATE=="GAME" and NETWORK.bConnect:
         moveEnemy()
         fallEnemy()
 
-        checkEnemyFez()
-        checkGameover()
-
         if coinCheck() > 0:
             coinPop()
-            i=0     # 여기서 스코어 증가
+            coin_bgm = pygame.mixer.Sound('resources/sounds/network_pause.wav')
+            coin_bgm.play()
+            SCORE += 100
 
         if NETWORK.gameid == USER.player1.value:    # tetris
             if curTime-tetris_time >= 0.3:
@@ -233,7 +271,7 @@ def dataProcess():
     return
 
 def renderProcess():
-    DISPLAYSURF.fill(BLACK)
+    DISPLAYSURF.fill(LIGHTBLUE)
     drawBackGround()
     drawMovingTetris()
     drawBoard()
@@ -256,7 +294,7 @@ def mainLoop():
     inputProcess()
     if curTime - g_time >= 0.03:
         dataProcess()
-        if NETWORK.bStart and NETWORK.gameid == USER.player0.value and STATE != "GAMEOVER":
+        if STATE=="GAME" and NETWORK.bConnect and NETWORK.gameid == USER.player0.value and STATE != "GAMEOVER":
             sendServer({"action":"fezPos", "x":fez["topX"], "y":fez["topY"], "jump":fez["jump"]})
         g_time = time.time()
     renderProcess()
@@ -284,6 +322,8 @@ def initFez(x,y,stage):
 
 
 def initMap(txt):
+    global bInitMap
+
     fp = open(txt,'r')
     for i in range(MAP_HEIGHT_CNT):
         for j in range(MAP_WIDTH_CNT):
@@ -295,11 +335,11 @@ def initMap(txt):
             m_Map[i][j].x = TETRIS_LEFT_GAP+j*BOXSIZE
             m_Map[i][j].y = TETRIS_TOP_GAP+i*BOXSIZE
             if line[j] == '*':
-                print(line[j])
+                #print(line[j])
                 initEnemy(j,i)
                 m_Map[i][j].type = BLANK
             elif line[j] == '^':
-                print(line[j])
+                #print(line[j])
                 initCoin(j,i)
                 m_Map[i][j].type = BLANK
             elif line[j] != BLANK and line[j] != '\n':
@@ -307,17 +347,8 @@ def initMap(txt):
             elif line[j] != '\n':
                 m_Map[i][j].type = line[j]
 
-    #for i in range(MAP_HEIGHT_CNT):
-    #    for j in range(MAP_WIDTH_CNT):
-    #        m_Map[i][j].x = TETRIS_LEFT_GAP+j*BOXSIZE
-    #        m_Map[i][j].y = TETRIS_TOP_GAP+i*BOXSIZE
-    #        if i>=MAP_HEIGHT_CNT-3:
-    #            m_Map[i][j].type = 4
-
-    #initEnemy(BOARD_WIDTH_CNT-10,BOARD_HEIGHT_CNT-8)   
-    #initEnemy(BOARD_WIDTH_CNT-5,BOARD_HEIGHT_CNT-4)   
-
     fp.close()
+    bInitMap = True
 
 def initEnemy(x,y):
     mapX = TETRIS_LEFT_GAP+x*BOXSIZE
@@ -417,13 +448,13 @@ def resetMap():
             m_Map[i][j].x = TETRIS_LEFT_GAP+j*BOXSIZE
             m_Map[i][j].y = TETRIS_TOP_GAP+i*BOXSIZE
             # idx = j-(MAP_WIDTH_CNT-MAP_BOARD_GAP)
-            print(idx,end=" ")
+            #print(idx,end=" ")
             if line[idx] == '*':
-                print(line[idx])
+                #print(line[idx])
                 initEnemy(j,i)
                 m_Map[i][j].type = BLANK
             elif line[idx] == '^':
-                print(line[idx])
+                #print(line[idx])
                 initCoin(j,i)
                 m_Map[i][j].type = BLANK
             elif line[idx] != BLANK and line[idx] != '\n':
@@ -441,10 +472,10 @@ def moveComponents():
     fez['topX'] -= SCREEN_SPEED
     fez['rightLegX'] -= SCREEN_SPEED
     fez['leftLegX'] -= SCREEN_SPEED
+
     back1['x'] -= 1
     if back1['x']+back1['width'] < 0:
         back1['x'] = back2['x']+back2['width']
-    
     back2['x'] -= 1
     if back2['x']+back2['width'] < 0:
         back2['x'] = back1['x']+back1['width']
@@ -475,7 +506,9 @@ def newTetris():
                 'y': -2,
                 'color': color}
     sendServer({"action":"newTetris", "shape":shape, "color":color})
+    
     return newBox
+
 
 def isBlocked():
     for x in range(TETRIS_WIDTH_CNT):
@@ -495,6 +528,8 @@ def setOnMap():
                 map_X, map_Y = convertBlockIdxToMapIdx(x,y,m_fallingTetris)
                 m_Map[map_Y][map_X].type = m_fallingTetris['color']
                 sendServer({"action":"blockOnMap", "x":map_X, "y":map_Y})
+                set_bgm = pygame.mixer.Sound('resources/sounds/block_set.wav')
+                set_bgm.play()
 
 def convertBlockIdxToMapIdx(x, y, tetris):
     # 테트리스 블럭 인덱스를 맵의 인덱스로 변환
@@ -678,9 +713,12 @@ def fallFez():
 def jumpFez():
     global fezJump, g_time, c_time, f_time
     if fezJump:
+        jump_bgm = pygame.mixer.Sound("resources/sounds/char_jump.wav")
+        jump_bgm.play()
         mapX, mapY = collisionUp()
         if mapX == -1:
             # 부딪친 블럭이 없을 때
+
             vel = g_time - c_time
             v = 25 - vel*100
             fez['jump'] = v     # v가 +면 올라가는 중
@@ -701,6 +739,7 @@ def jumpFez():
 def setFezPos(x, y, jump):
     fez["topX"], fez["topY"] = x, y
     fez["jump"] = jump
+    
 
     fez["leftLegX"] = fez["topX"] + FEZ_LEG_RIGHT_GAP
     fez["rightLegX"] = fez['topX'] + (FEZ_WIDTH_SIZE-FEZ_LEG_LEFT_GAP)
@@ -708,17 +747,19 @@ def setFezPos(x, y, jump):
 
 
 def checkEnemyFez():
-    global STATE
+    global SCORE, bGameOver
     for i in range(len(m_Enemy)):
         eRect = pygame.Rect((m_Enemy[i].x,m_Enemy[i].y,m_Enemy[i].width,m_Enemy[i].height))
         fez['rect'] = pygame.Rect((fez['topX'],fez['topY'],fez['width'],fez['height']))
         if eRect.colliderect(fez['rect']):
-            sendServer({"action":"gameOver"})
+            sendServer({"action":"gameOver", "score":SCORE})
+            bGameOver = True
 
 def checkGameover():
-    global STATE
+    global SCORE, STATE, bGameOver
     if fez['topX'] < TETRIS_LEFT_GAP or fez['topY'] > 460:
-        sendServer({"action":"gameOver"})
+        sendServer({"action":"gameOver", "score":SCORE})
+        bGameOver = True
 
 ### ENEMY
 def moveEnemy():
@@ -769,10 +810,9 @@ def checkLRfallingTetris(ex,ey):
             if PIECES[m_fallingTetris['shape']][m_fallingTetris['rotation']][y][x] != BLANK:
                 map_Xi, map_Yi = convertBlockIdxToMapIdx(x,y,m_fallingTetris)
                 tetris.append({'x':map_Xi,'y':map_Yi})
-    for i in range(len(m_Enemy)):
-        for i in range(len(tetris)):
-            if ex == tetris[i]['x'] and ey == tetris[i]['y']:
-                return True
+    for i in range(len(tetris)):
+        if ex == tetris[i]['x'] and ey == tetris[i]['y']:
+            return True
     return False
 
 def collisionDownEnemy():
@@ -802,25 +842,27 @@ def coinImage():
             m_Coin[i].img = 0
 
 def coinCheck():
-    cnt=0
+    cnt = 0
     for i in range(len(m_Coin)):
-        cRect = pygame.Rect((m_Coin[i].x,m_Coin[i].y,m_Coin[i].width,m_Coin[i].height))
+        cRect = pygame.Rect((m_Coin[i].x, m_Coin[i].y, m_Coin[i].width, m_Coin[i].height))
         if cRect.colliderect(fez['rect']):
             m_Coin[i].bPop = True
             cnt+=1
+            
     return cnt
 
 def coinPop():
     for i in range(len(m_Coin)):
         if m_Coin[i].bPop:
             m_Coin.pop(i)
+            break;
 
 # render
 def drawBackGround():
     rect1 = pygame.Rect((back1['x'],back1['y'],back1['width'],back1['height']))
     rect2 = pygame.Rect((back2['x'],back2['y'],back2['width'],back2['height']))
-    DISPLAYSURF.blit(BACKIMG[fez['stage']],rect1)
-    DISPLAYSURF.blit(BACKIMG[fez['stage']],rect2)
+    DISPLAYSURF.blit(BACKIMG[fez['stage']], rect1)
+    DISPLAYSURF.blit(BACKIMG[fez['stage']], rect2)
 
 def drawBoard():
     for y in range(MAP_HEIGHT_CNT):
@@ -829,9 +871,14 @@ def drawBoard():
     pygame.draw.rect(DISPLAYSURF, BORDERCOLOR, (TETRIS_LEFT_GAP, TETRIS_TOP_GAP, (BOARD_WIDTH_CNT * BOXSIZE) + 8, (BOARD_HEIGHT_CNT * BOXSIZE) + 8), 5)
 
 def drawBound():
-    pygame.draw.rect(DISPLAYSURF, BLACK, (0,TETRIS_TOP_GAP-5,TETRIS_LEFT_GAP-2,BOARD_HEIGHT_CNT*BOXSIZE+30))
-    # pygame.draw.rect(DISPLAYSURF, BLACK, (TETRIS_LEFT_GAP+BOARD_WIDTH_CNT*BOXSIZE+5,TETRIS_TOP_GAP-5,0,BOARD_HEIGHT_CNT*BOXSIZE+30))
-    pygame.draw.rect(DISPLAYSURF, BLACK, (TETRIS_LEFT_GAP+BOARD_WIDTH_CNT*BOXSIZE+5,TETRIS_TOP_GAP-5,1,BOARD_HEIGHT_CNT*BOXSIZE+30))
+    # left
+    pygame.draw.rect(DISPLAYSURF, BLACK, (0, 0, TETRIS_LEFT_GAP-2, WINDOWHEIGHT))
+    # right
+    pygame.draw.rect(DISPLAYSURF, BLACK, (WINDOWWIDTH-TETRIS_LEFT_GAP+10, 0, WINDOWWIDTH, WINDOWHEIGHT))
+    # top
+    pygame.draw.rect(DISPLAYSURF, BLACK, (0, 0, WINDOWWIDTH, TETRIS_TOP_GAP+2))
+    # bottom
+    pygame.draw.rect(DISPLAYSURF, BLACK, (0, TETRIS_TOP_GAP + BOXSIZE*BOARD_HEIGHT_CNT +5, WINDOWWIDTH, WINDOWHEIGHT))
 
 def drawBox(y,x,color):
     if color==BLANK:
@@ -887,6 +934,9 @@ def imgSprite():
     if fezJump == True:
         if fez['jump'] >= 0:
             # 올라가는중
+            
+            jump_bgm = pygame.mixer.Sound("resources/sounds/char_jump.wav")
+            jump_bgm.play()
             if fez['dir'] == 'right':
                 if fez['img'] == FEZ_IMG_JUMP_RIGHT:
                     fez['img'] = FEZ_IMG_JUMP_RIGHT2
@@ -946,6 +996,38 @@ def terminate():
     pygame.quit()
     sys.exit()
 
+def gotoMain():
+    global STATE, SCORE, MOVEBLOCK, MOVECNT, back1, back2, title_cloud_x, title_cloud_gap
+    global fezMoveLeft, fezMoveRight, fezJump, fezFall, m_Enemy, m_Coin, bGameOver
+    STATE = "TITLE"
+    SCORE = 0
+
+    MOVEBLOCK = 0
+    MOVECNT = 0
+    back1 = {'x':0,'y':0,'width':0,'height':0}
+    back2 = {'x':0,'y':0,'width':0,'height':0}
+
+    title_cloud_x = 0
+    title_cloud_gap = 0
+    
+    fez["dir"] = 'right'
+    fez["topX"], fez["topY"] = FEZ_START_X, FEZ_START_Y
+    fez["leftLegX"], fez["rightLegX"] = FEZ_START_X+FEZ_LEG_LEFT_GAP, FEZ_START_X+FEZ_WIDTH_SIZE-FEZ_LEG_RIGHT_GAP
+    fez["botY"], fez["jump"] = FEZ_START_Y+FEZ_HEIGHT_SIZE, 9999
+  
+    fez['rect'] = pygame.Rect((fez['topX'],fez['topY'],fez['width'],fez['height']))
+
+    fezMoveLeft = False
+    fezMoveRight = False
+    fezJump = False
+    fezFall = False
+
+    m_Enemy = []
+    m_Coin = []
+
+    bGameOver = False
+    bInitMap = False
+
 def checkForQuit():
     for event in pygame.event.get(QUIT): # get all the QUIT events
         terminate() # terminate if any QUIT events are present
@@ -965,16 +1047,26 @@ def checkForKeyPress():
 
 def sendServer(data):
     global NETWORK
-    if NETWORK.bStart == False:
+    if NETWORK.bConnect == False:
         return
 
     connection.Send(data)
 
 def title():
-    global STATE
-    titleimg = pygame.image.load('images/title.png').convert()
+    global STATE, title_cloud_x, b_title_cloud, DISPLAYSURF, NETWORK
+    
+    # background
+    titleimg = pygame.image.load('images/title.png')
     titlerect = titleimg.get_rect()
     DISPLAYSURF.blit(titleimg, titlerect)
+    cloudimg = pygame.image.load('images/title_cloud.png')
+    cloudrect = cloudimg.get_rect()
+    DISPLAYSURF.blit(cloudimg, cloudrect.move(16,16), Rect(title_cloud_x, 0, titlerect.w-30, cloudrect.h))
+    title_cloud_x += SCREEN_SPEED
+    if title_cloud_x >= cloudrect.w:
+        title_cloud_x = 30-titlerect.w
+
+    # button
     button_1 = pygame.image.load('images/button_1.png')
     button1_rect = button_1.get_rect()
     button1_rect = button1_rect.move(355,210)
@@ -995,29 +1087,80 @@ def title():
     button4_rect = button4_rect.move(355,330)
     b4 = DISPLAYSURF.blit(button_4, button4_rect)
     pygame.display.flip()
+    bgm = pygame.mixer.Sound('resources/sounds/opening.wav')
+    bgm.play()
+    
 
+    for event in pygame.event.get():
+        if event.type == pygame.MOUSEBUTTONDOWN and event.button == 1:
+            ## if mouse is pressed get position of cursor ##
+            pos = pygame.mouse.get_pos()
+            ## check if cursor is on button ##
+            if b1.collidepoint(pos):
+                if NETWORK.bConnect and NETWORK.gameid == USER.player0.value:
+                    print("게임시작1")
+                    pygame.mixer.stop()
+                    STATE = "GAME"
+                    fez['stage'] = 0
+                    bgm = pygame.mixer.Sound("sound/stage1/stage_bgm.wav")
+                    bgm.play()
+                    sendServer({"action":"gameStart","stage":0})
+            elif b2.collidepoint(pos):
+                if NETWORK.bConnect and NETWORK.gameid == USER.player0.value:
+                    print("게임시작2")
+                    pygame.mixer.stop()
+                    STATE = "GAME"
+                    fez['stage'] = 1
+                    bgm = pygame.mixer.Sound("sound/stage2/stage_bgm.wav")
+                    bgm.play()
+                    sendServer({"action":"gameStart","stage":1})
+            elif b3.collidepoint(pos):
+                print("크레딧")
+                pygame.mixer.stop()
+                bgm = pygame.mixer.Sound("resources/sounds/bgm_arcade.wav")
+                bgm.play()
+                Credit()
+            elif b4.collidepoint(pos):
+                print("게임종료")
+                terminate()
+        return
+
+    # User Server 접속
+    font = pygame.font.Font(None, 25)
+    text = font.render("Player1" , True, (255, 255, 255))
+    DISPLAYSURF.blit(text,text.get_rect().move(20,480))
+    text = font.render("O" , True, GREEN)
+    DISPLAYSURF.blit(text,text.get_rect().move(90,480))
+    text = font.render("Player2" , True, (255, 255, 255))
+    DISPLAYSURF.blit(text,text.get_rect().move(20,500))
+    if NETWORK.bConnect:
+        text = font.render("O" , True, GREEN)
+    else:
+        text = font.render("O" , True, GRAY)
+    DISPLAYSURF.blit(text,text.get_rect().move(90,500))
+
+def Credit():
+    global STATE, DISPLAYSURF
+    
+    creditimg = pygame.image.load('images/credit.png')
+    creditrect = creditimg.get_rect()
+    c = DISPLAYSURF.blit(creditimg, creditrect)
+    pygame.display.flip()
     while True:
         for event in pygame.event.get():
             if event.type == pygame.MOUSEBUTTONDOWN and event.button == 1:
-                ## if mouse is pressed get position of cursor ##
                 pos = pygame.mouse.get_pos()
-                ## check if cursor is on button ##
-                if b1.collidepoint(pos):
-                    print("게임시작")
-                    STATE = "GAME"
-                if b2.collidepoint(pos):
-                    print("이어하기")
-                if b3.collidepoint(pos):
-                    print("크레딧")
-                if b4.collidepoint(pos):
-                    print("게임종료")
-                    wnate()
-            return
+                if c.collidepoint(pos):
+                    DISPLAYSURF.fill((0,0,0))
+                    STATE = "TITLE"
+                    pygame.mixer.stop()
+                    return
+            
 
 
 def Gameover(): 
     global STATE, SCORE
-
+    
     gameover = pygame.image.load('images/gameover.png')
     gameover_rect = gameover.get_rect()
     gameover_rect = gameover_rect.move(0,0)
@@ -1026,48 +1169,46 @@ def Gameover():
     text = font.render("Your Score : %s" % SCORE, True, (255, 255, 255))
     DISPLAYSURF.blit(text,text.get_rect().move(300,270))
     pygame.display.flip()
-    pygame.time.delay(2000)
-    terminate()
+    pygame.mixer.stop()
+    bgm = pygame.mixer.Sound('resources/sounds/gameover_2.wav')
+    bgm.play()
+    pygame.time.delay(2900)
+
+    gotoMain()
 
 #### main
 def main():
-    global FPSCLOCK, DISPLAYSURF, BASICFONT, BIGFONT, NETWORK
+    global FPSCLOCK, DISPLAYSURF, BASICFONT, BIGFONT, NETWORK, STATE
     pygame.init()
     FPSCLOCK = pygame.time.Clock()
     DISPLAYSURF = pygame.display.set_mode((WINDOWWIDTH,WINDOWHEIGHT))
     pygame.display.set_caption('EDGE')
-    # showTextScreen('EDGE')
-    # pygame.draw.rect(DISPLAYSURF, BORDERCOLOR, (TETRIS_LEFT_GAP, TETRIS_TOP_GAP, (TETRIS_LEFT_GAP * BOXSIZE) + 8, (BOARD_HEIGHT_CNT * BOXSIZE) + 8), 5)
 
-    #while checkForKeyPress() == None:
-    #    pygame.display.update()
-    #    FPSCLOCK.tick()
-    
-    # start game
+    NETWORK = NetworkListener()
     while True:
-        if STATE == "TITLE":
+        while STATE == "TITLE":
             title()
-        elif STATE == "GAME":
-            #opening = pygame.image.load('images/opening.png')
-            #opening_rect = opening.get_rect()
-            #opening = DISPLAYSURF.blit(opening, opening_rect)
-            #pygame.display.flip()
-            #pygame.time.delay(3000)
+            connection.Pump()
+            NETWORK.Pump()
 
-            # start game
-            g_time = time.time()
-            g_time -= 1
-            initProcess()
-            NETWORK = NetworkListener()
-            while True:
-                connection.Pump()
-                NETWORK.Pump()
-                mainLoop()
-                if STATE == "GAMEOVER":
-                    break
-        elif STATE == "GAMEOVER":
-            Gameover()
+        opening = pygame.image.load('images/opening.png')
+        opening_rect = opening.get_rect()
+        opening = DISPLAYSURF.blit(opening, opening_rect)
+        pygame.display.flip()
+        pygame.time.delay(3000)
 
+        g_time = time.time()
+        g_time -= 1
+        initProcess()
+        while True:
+            if STATE == "GAMEOVER":
+                break
+            connection.Pump()
+            NETWORK.Pump()
+            mainLoop()
+        Gameover()
+        connection.Pump()
+        NETWORK.Pump()
 
 ## function calls
 main()
