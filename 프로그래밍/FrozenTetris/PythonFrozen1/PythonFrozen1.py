@@ -16,7 +16,11 @@ class NetworkListener(ConnectionListener):
             else:
                 host, port = address.split(":")
             # host, port = "localhost", 8000
+<<<<<<< HEAD
             # host, port = "203.252.182.154", 8000
+=======
+            host, port = "203.252.182.154", 8000
+>>>>>>> 58eea9134839a53011c7f090d7b9f8ba0860070e
             self.Connect((host, int(port)))
             print("Chat client started")
 
@@ -1090,6 +1094,7 @@ def title():
     bgm = pygame.mixer.Sound('resources/sounds/opening.wav')
     bgm.play()
     
+<<<<<<< HEAD
 
     for event in pygame.event.get():
         if event.type == pygame.MOUSEBUTTONDOWN and event.button == 1:
@@ -1125,6 +1130,43 @@ def title():
                 terminate()
         return
 
+=======
+
+    for event in pygame.event.get():
+        if event.type == pygame.MOUSEBUTTONDOWN and event.button == 1:
+            ## if mouse is pressed get position of cursor ##
+            pos = pygame.mouse.get_pos()
+            ## check if cursor is on button ##
+            if b1.collidepoint(pos):
+                if NETWORK.bConnect and NETWORK.gameid == USER.player0.value:
+                    print("게임시작1")
+                    pygame.mixer.stop()
+                    STATE = "GAME"
+                    fez['stage'] = 0
+                    bgm = pygame.mixer.Sound("sound/stage1/stage_bgm.wav")
+                    bgm.play()
+                    sendServer({"action":"gameStart","stage":0})
+            elif b2.collidepoint(pos):
+                if NETWORK.bConnect and NETWORK.gameid == USER.player0.value:
+                    print("게임시작2")
+                    pygame.mixer.stop()
+                    STATE = "GAME"
+                    fez['stage'] = 1
+                    bgm = pygame.mixer.Sound("sound/stage2/stage_bgm.wav")
+                    bgm.play()
+                    sendServer({"action":"gameStart","stage":1})
+            elif b3.collidepoint(pos):
+                print("크레딧")
+                pygame.mixer.stop()
+                bgm = pygame.mixer.Sound("resources/sounds/bgm_arcade.wav")
+                bgm.play()
+                Credit()
+            elif b4.collidepoint(pos):
+                print("게임종료")
+                terminate()
+        return
+
+>>>>>>> 58eea9134839a53011c7f090d7b9f8ba0860070e
     # User Server 접속
     font = pygame.font.Font(None, 25)
     text = font.render("Player1" , True, (255, 255, 255))
@@ -1191,11 +1233,19 @@ def main():
             connection.Pump()
             NETWORK.Pump()
 
+<<<<<<< HEAD
         opening = pygame.image.load('images/opening.png')
         opening_rect = opening.get_rect()
         opening = DISPLAYSURF.blit(opening, opening_rect)
         pygame.display.flip()
         pygame.time.delay(3000)
+=======
+        #opening = pygame.image.load('images/opening.png')
+        #opening_rect = opening.get_rect()
+        #opening = DISPLAYSURF.blit(opening, opening_rect)
+        #pygame.display.flip()
+        #pygame.time.delay(3000)
+>>>>>>> 58eea9134839a53011c7f090d7b9f8ba0860070e
 
         g_time = time.time()
         g_time -= 1
